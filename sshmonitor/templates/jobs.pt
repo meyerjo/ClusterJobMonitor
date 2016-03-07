@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="${request.locale_name}">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="pyramid web application">
+    <meta name="author" content="Pylons Project">
+    <link rel="shortcut icon" href="${request.static_url('sshmonitor:static/pyramid-16x16.png')}">
+
+    <title>Starter Scaffold for The Pyramid Web Framework</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="//oss.maxcdn.com/libs/twitter-bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="//oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+    <div class="container">
+        <div class="row" tal:repeat="(jobclass, jobelements) jobs.items()">
+            <h1>${jobclass} (<span tal:content="len(jobelements)"></span>) </h1>
+            <table tal:condition="python: len(jobelements) >= 1" class="table table-responsive table-bordered table-striped">
+                <tr>
+                    <th tal:repeat="key jobelements[0].keys()">
+                        <span tal:content="key"></span>
+                    </th>
+                    <th tal:condition="python: ('JobID' in jobelements[0]) and (jobclass in ['active', 'eligible'])">
+                        <button value="${jobelements[0]['JobID']}" class="btn btn-danger">Cancel</button>
+                    </th>
+                </tr>
+                <tr tal:repeat="row jobelements">
+                    <td tal:repeat="(key, val) row.items()">
+                        <span tal:content="val"></span>
+                    </td>
+                    <td tal:condition="python: ('JobID' in row) and (jobclass in ['active', 'eligible'])">
+                        <button value="${row['JobID']}" class="btn btn-danger">Cancel</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+  </body>
+</html>

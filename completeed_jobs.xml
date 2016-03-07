@@ -1,0 +1,78 @@
+<Data>
+    <Object>queue</Object>
+    <cluster LocalActiveNodes="404" LocalAllocProcs="0" LocalConfigNodes="532" LocalIdleNodes="86" LocalIdleProcs="3563"
+             LocalUpNodes="490" LocalUpProcs="7952" RemoteActiveNodes="0" RemoteAllocProcs="0" RemoteConfigNodes="0"
+             RemoteIdleNodes="0" RemoteIdleProcs="0" RemoteUpNodes="0" RemoteUpProcs="0" time="1457279212"></cluster>
+    <queue count="14" option="completed" purgetime="10800">
+        <job AWDuration="1489" Account="freiburg" Class="singlenode" CompletionCode="0" CompletionTime="1457270579"
+             DRMJID="8563061" GJID="8563061" Group="fr_fr" JobID="8563061" JobName="visualize_classifier_output.sh"
+             MasterHost="uc1n327" PAL="uc1" ReqAWDuration="36000" ReqNodes="1" ReqProcs="1" StartTime="1457269102"
+             StatPSDed="1476.690000" StatPSUtl="1476.690000" State="Removed" SubmissionTime="1457269094"
+             SuspendDuration="0" User="fr_jm168"></job>
+        <job AWDuration="1637" Account="freiburg" Class="singlenode" CompletionCode="0" CompletionTime="1457270719"
+             DRMJID="8563060" GJID="8563060" Group="fr_fr" JobID="8563060" JobName="visualize_classifier_output.sh"
+             MasterHost="uc1n319" PAL="uc1" ReqAWDuration="36000" ReqNodes="1" ReqProcs="1" StartTime="1457269102"
+             StatPSDed="1627.870000" StatPSUtl="1627.870000" State="Removed" SubmissionTime="1457269094"
+             SuspendDuration="0" User="fr_jm168"></job>
+        <job AWDuration="1660" Account="freiburg" Class="singlenode" CompletionCode="0" CompletionTime="1457270749"
+             DRMJID="8563063" GJID="8563063" Group="fr_fr" JobID="8563063" JobName="visualize_classifier_output.sh"
+             MasterHost="uc1n320" PAL="uc1" ReqAWDuration="36000" ReqNodes="1" ReqProcs="1" StartTime="1457269102"
+             StatPSDed="1650.790000" StatPSUtl="1650.790000" State="Removed" SubmissionTime="1457269095"
+             SuspendDuration="0" User="fr_jm168"></job>
+        <job AWDuration="1693" Account="freiburg" Class="singlenode" CompletionCode="0" CompletionTime="1457270779"
+             DRMJID="8563059" GJID="8563059" Group="fr_fr" JobID="8563059" JobName="visualize_classifier_output.sh"
+             MasterHost="uc1n307" PAL="uc1" ReqAWDuration="36000" ReqNodes="1" ReqProcs="1" StartTime="1457269102"
+             StatPSDed="1683.620000" StatPSUtl="1683.620000" State="Removed" SubmissionTime="1457269094"
+             SuspendDuration="0" User="fr_jm168"></job>
+        <job AWDuration="1693" Account="freiburg" Class="singlenode" CompletionCode="0" CompletionTime="1457270782"
+             DRMJID="8563058" GJID="8563058" Group="fr_fr" JobID="8563058" JobName="visualize_classifier_output.sh"
+             MasterHost="uc1n307" PAL="uc1" ReqAWDuration="36000" ReqNodes="1" ReqProcs="1" StartTime="1457269102"
+             StatPSDed="1683.620000" StatPSUtl="1683.620000" State="Removed" SubmissionTime="1457269093"
+             SuspendDuration="0" User="fr_jm168"></job>
+        <job AWDuration="1990" Account="freiburg" Class="singlenode" CompletionCode="0" CompletionTime="1457271071"
+             DRMJID="8563054" GJID="8563054" Group="fr_fr" JobID="8563054" JobName="visualize_classifier_output.sh"
+             MasterHost="uc1n263" PAL="uc1" ReqAWDuration="36000" ReqNodes="1" ReqProcs="1" StartTime="1457269102"
+             StatPSDed="1980.740000" StatPSUtl="1980.740000" State="Removed" SubmissionTime="1457269092"
+             SuspendDuration="0" User="fr_jm168"></job>
+        <job AWDuration="2086" Account="freiburg" Class="singlenode" CompletionCode="0" CompletionTime="1457271162"
+             DRMJID="8563051" GJID="8563051" Group="fr_fr" JobID="8563051" JobName="visualize_classifier_output.sh"
+             MasterHost="uc1n272" PAL="uc1" ReqAWDuration="36000" ReqNodes="1" ReqProcs="1" StartTime="1457269092"
+             StatPSDed="2076.940000" StatPSUtl="2076.940000" State="Removed" SubmissionTime="1457269088"
+             SuspendDuration="0" User="fr_jm168"></job>
+        <job AWDuration="2429" Account="freiburg" Class="singlenode" CompletionCode="0" CompletionTime="1457271519"
+             DRMJID="8563057" GJID="8563057" Group="fr_fr" JobID="8563057" JobName="visualize_classifier_output.sh"
+             MasterHost="uc1n285" PAL="uc1" ReqAWDuration="36000" ReqNodes="1" ReqProcs="1" StartTime="1457269102"
+             StatPSDed="2419.930000" StatPSUtl="2419.930000" State="Removed" SubmissionTime="1457269093"
+             SuspendDuration="0" User="fr_jm168"></job>
+        <job AWDuration="8188" Account="freiburg" Class="singlenode" CompletionCode="0" CompletionTime="1457277290"
+             DRMJID="8563064" GJID="8563064" Group="fr_fr" JobID="8563064" JobName="visualize_classifier_output.sh"
+             MasterHost="uc1n319" PAL="uc1" ReqAWDuration="36000" ReqNodes="1" ReqProcs="1" StartTime="1457269102"
+             StatPSDed="8183.700000" StatPSUtl="8183.700000" State="Completed" SubmissionTime="1457269095"
+             SuspendDuration="0" User="fr_jm168"></job>
+        <job AWDuration="8205" Account="freiburg" Class="singlenode" CompletionCode="0" CompletionTime="1457277307"
+             DRMJID="8563062" GJID="8563062" Group="fr_fr" JobID="8563062" JobName="visualize_classifier_output.sh"
+             MasterHost="uc1n330" PAL="uc1" ReqAWDuration="36000" ReqNodes="1" ReqProcs="1" StartTime="1457269102"
+             StatPSDed="8208.700000" StatPSUtl="8208.700000" State="Completed" SubmissionTime="1457269094"
+             SuspendDuration="0" User="fr_jm168"></job>
+        <job AWDuration="8423" Account="freiburg" Class="singlenode" CompletionCode="0" CompletionTime="1457277525"
+             DRMJID="8563065" GJID="8563065" Group="fr_fr" JobID="8563065" JobName="visualize_classifier_output.sh"
+             MasterHost="uc1n343" PAL="uc1" ReqAWDuration="36000" ReqNodes="1" ReqProcs="1" StartTime="1457269102"
+             StatPSDed="8429.130000" StatPSUtl="8429.130000" State="Completed" SubmissionTime="1457269095"
+             SuspendDuration="0" User="fr_jm168"></job>
+        <job AWDuration="8436" Account="freiburg" Class="singlenode" CompletionCode="0" CompletionTime="1457277538"
+             DRMJID="8563056" GJID="8563056" Group="fr_fr" JobID="8563056" JobName="visualize_classifier_output.sh"
+             MasterHost="uc1n284" PAL="uc1" ReqAWDuration="36000" ReqNodes="1" ReqProcs="1" StartTime="1457269102"
+             StatPSDed="8429.130000" StatPSUtl="8429.130000" State="Completed" SubmissionTime="1457269093"
+             SuspendDuration="0" User="fr_jm168"></job>
+        <job AWDuration="8622" Account="freiburg" Class="singlenode" CompletionCode="0" CompletionTime="1457277724"
+             DRMJID="8563053" GJID="8563053" Group="fr_fr" JobID="8563053" JobName="visualize_classifier_output.sh"
+             MasterHost="uc1n275" PAL="uc1" ReqAWDuration="36000" ReqNodes="1" ReqProcs="1" StartTime="1457269102"
+             StatPSDed="8618.800000" StatPSUtl="8618.800000" State="Completed" SubmissionTime="1457269092"
+             SuspendDuration="0" User="fr_jm168"></job>
+        <job AWDuration="8835" Account="freiburg" Class="singlenode" CompletionCode="0" CompletionTime="1457277937"
+             DRMJID="8563052" GJID="8563052" Group="fr_fr" JobID="8563052" JobName="visualize_classifier_output.sh"
+             MasterHost="uc1n274" PAL="uc1" ReqAWDuration="36000" ReqNodes="1" ReqProcs="1" StartTime="1457269102"
+             StatPSDed="8833.810000" StatPSUtl="8833.810000" State="Completed" SubmissionTime="1457269092"
+             SuspendDuration="0" User="fr_jm168"></job>
+    </queue>
+</Data>

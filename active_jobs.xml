@@ -1,0 +1,13 @@
+<Data>
+    <Object>queue</Object>
+    <cluster LocalActiveNodes="404" LocalAllocProcs="1" LocalConfigNodes="532" LocalIdleNodes="86" LocalIdleProcs="3559"
+             LocalUpNodes="490" LocalUpProcs="7952" RemoteActiveNodes="0" RemoteAllocProcs="0" RemoteConfigNodes="0"
+             RemoteIdleNodes="0" RemoteIdleProcs="0" RemoteUpNodes="0" RemoteUpProcs="0" time="1457279312"></cluster>
+    <queue count="1" option="active">
+        <job AWDuration="10196" Account="freiburg" Class="singlenode" DRMJID="8563055" GJID="8563055" Group="fr_fr"
+             JobID="8563055" JobName="visualize_classifier_output.sh" MasterHost="uc1n278" PAL="uc1"
+             ReqAWDuration="36000" ReqNodes="1" ReqProcs="1" RsvStartTime="1457269102" RunPriority="-17802"
+             StartPriority="-17802" StartTime="1457269102" StatPSDed="10195.820000" StatPSUtl="10195.820000"
+             State="Running" SubmissionTime="1457269093" SuspendDuration="0" User="fr_jm168"></job>
+    </queue>
+</Data>
