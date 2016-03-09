@@ -46,7 +46,7 @@ class SSHBasedJobManager(JobManager):
         except BaseException as e:
             return dict(error=str(e))
 
-    def _from_basic_showq(self, classname):
+    def _from_basic_showq(self, classname, filteroptions=None):
         log = logging.getLogger(__name__)
         log.debug('Querying {0} jobs'.format(classname))
         return_dict =  self._send_command('showq --xml')
@@ -54,32 +54,29 @@ class SSHBasedJobManager(JobManager):
             lines = return_dict['stdoutstr']
             tree = ET.fromstring(lines)
 
-            return self._load_class_from_xml(tree, classname)
+            return self._load_class_from_xml(tree, classname, filteroptions)
         else:
             return return_dict
 
+    def get_active_jobs(self, filteroptions=None):
+        return self._from_basic_showq('active', filteroptions)
 
-    def get_active_jobs(self):
-        return self._from_basic_showq('active')
-        pass
-
-    def get_blocked_jobs(self):
-        return self._from_basic_showq('blocked')
+    def get_blocked_jobs(self, filteroptions=None):
+        return self._from_basic_showq('blocked', filteroptions)
 
     def get_all_jobs(self, filteroptions=None):
         types = ['active', 'eligible', 'blocked']
         ret = {}
         for t in types:
-            ret[t] = self._from_basic_showq(t)
+            ret[t] = self._from_basic_showq(t, filteroptions)
 
-        ret['completed'] = self.get_completed_jobs()
-
+        ret['completed'] = self.get_completed_jobs(filteroptions)
         return ret
 
-    def get_eligible_jobs(self):
-        return self._from_basic_showq('eligible')
+    def get_eligible_jobs(self, filteroptions=None):
+        return self._from_basic_showq('eligible', filteroptions)
 
-    def get_completed_jobs(self):
+    def get_completed_jobs(self, filteroptions=None):
         log = logging.getLogger(__name__)
         log.debug('Querying {0} jobs'.format('completed'))
         return_dict =  self._send_command('showq --xml -c')
@@ -87,7 +84,7 @@ class SSHBasedJobManager(JobManager):
             lines = return_dict['stdoutstr']
             tree = ET.fromstring(lines)
 
-            return self._load_class_from_xml(tree, 'completed')
+            return self._load_class_from_xml(tree, 'completed', filteroptions)
         else:
             return return_dict
 

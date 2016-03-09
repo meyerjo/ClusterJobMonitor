@@ -12,7 +12,10 @@ def my_view(request):
 @view_config(route_name='jobs', renderer='templates/jobs.pt')
 def all_jobs(request):
 
-    t = FileBasedJobManager('jobs.xml')
-    jobs = t.get_all_jobs(['JobID', 'JobName', 'StartTime', 'SubmissionTime', 'CompletionTime', 'State', 'CompletionCode'])
+    jobmanager = request.registry.settings['jobmanager']
+    coltitles = ['JobID', 'JobName', 'StartTime', 'SubmissionTime', 'CompletionTime', 'State', 'CompletionCode']
+
+    jobs = jobmanager.get_all_jobs(coltitles)
+
 
     return {'project': 'SSHMonitor', 'jobs': jobs}
