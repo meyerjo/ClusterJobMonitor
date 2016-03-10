@@ -71,6 +71,7 @@ class SSHBasedJobManager(JobManager):
         if output['error'] is None:
             # process data
             print(output.items())
+        return output
 
         pass
 
