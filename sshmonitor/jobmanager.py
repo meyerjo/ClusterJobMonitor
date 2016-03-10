@@ -28,6 +28,22 @@ class JobManager:
                 input_dict[item] = datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
         return input_dict
 
+    def _convert_from_listdict_to_list(self, listdict, filteroptions):
+        assert(isinstance(listdict, list))
+        updated_result = {}
+        if len(listdict) > 0:
+            keyname_list = list(listdict[0].keys())
+            ids = [filteroptions.index(x) for x in keyname_list]
+            sorted_keys = [line for (id,line) in sorted(zip(ids, keyname_list))]
+            header = sorted_keys
+            body = []
+            for row in listdict:
+                row_values = row.values()
+                sorted_values = [line for (id, line) in sorted(zip(ids, row_values))]
+                body.append(sorted_values)
+            updated_result = dict(header=header, body=body)
+        return updated_result
+
     def _load_class_from_xml(self, xmltree_root, option, filteroptions=None):
         ret = []
         for child in xmltree_root.findall('queue'):
@@ -38,6 +54,7 @@ class JobManager:
                     a = self._filter_from_dict(element.attrib, filteroptions)
                     a = self._preprocess_data(a)
                     ret.append(a)
+        ret = self._convert_from_listdict_to_list(ret, filteroptions)
         return ret
 
     def get_all_jobs(self, filteroptions=None):

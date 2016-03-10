@@ -23,22 +23,22 @@
   <body>
     <div class="container">
         <div class="row" tal:repeat="(jobclass, jobelements) jobs.items()">
-            <h1>${jobclass} (<span tal:content="len(jobelements)"></span>) </h1>
-            <table tal:condition="python: len(jobelements) >= 1" class="table table-responsive table-bordered table-striped">
+            <h1>${jobclass} (<span tal:content="len(jobelements['body']) if 'body' in jobelements else 0"></span>) </h1>
+            <table tal:condition="python: len(jobelements) >= 1 and ('header' in jobelements)" class="table table-responsive table-bordered table-striped">
                 <tr>
-                    <th tal:repeat="key jobelements[0].keys()">
+                    <th tal:repeat="key jobelements['header']">
                         <span tal:content="key"></span>
                     </th>
-                    <th tal:condition="python: ('JobID' in jobelements[0]) and (jobclass in ['active', 'eligible'])">
-                        <button value="${jobelements[0]['JobID']}" class="btn btn-danger">Cancel</button>
+                    <th tal:condition="python: (isinstance(jobelements, dict)) and (jobclass in ['active', 'eligible'])">
+                        Cancel
                     </th>
                 </tr>
-                <tr tal:repeat="row jobelements">
-                    <td tal:repeat="(key, val) row.items()">
+                <tr tal:repeat="row jobelements['body']">
+                    <td tal:repeat="val row">
                         <span tal:content="val"></span>
                     </td>
-                    <td tal:condition="python: ('JobID' in row) and (jobclass in ['active', 'eligible'])">
-                        <button value="${row['JobID']}" class="btn btn-danger">Cancel</button>
+                    <td tal:condition="python: (jobclass in ['active', 'eligible'])">
+                        <button value="${row[0]}" class="btn btn-danger">Cancel</button>
                     </td>
                 </tr>
             </table>

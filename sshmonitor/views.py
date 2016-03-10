@@ -1,7 +1,6 @@
 from pyramid.view import view_config
 
-from sshmonitor import JobManager
-from sshmonitor.filebasedjobmanager import FileBasedJobManager
+from sshmonitor import SSHBasedJobManager
 
 
 @view_config(route_name='home', renderer='templates/mytemplate.pt')
@@ -11,11 +10,9 @@ def my_view(request):
 
 @view_config(route_name='jobs', renderer='templates/jobs.pt')
 def all_jobs(request):
-
-    jobmanager = request.registry.settings['jobmanager']
+    ssh_holder = request.registry.settings['ssh_holder']
+    ssh_jobmanager = SSHBasedJobManager(ssh_holder)
     coltitles = ['JobID', 'JobName', 'StartTime', 'SubmissionTime', 'CompletionTime', 'State', 'CompletionCode']
-
-    jobs = jobmanager.get_all_jobs(coltitles)
-
+    jobs = ssh_jobmanager.get_all_jobs(coltitles)
 
     return {'project': 'SSHMonitor', 'jobs': jobs}

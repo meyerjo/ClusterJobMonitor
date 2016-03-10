@@ -1,7 +1,7 @@
 
 class FileMonitor:
 
-    def validate_files_in_place(self):
+    def validate_files_in_place(self, folder):
         pass
 
     def restore_directory_structure(self):
