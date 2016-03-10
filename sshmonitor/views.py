@@ -12,6 +12,9 @@ def my_view(request):
 def all_jobs(request):
     ssh_holder = request.registry.settings['ssh_holder']
     ssh_jobmanager = SSHBasedJobManager(ssh_holder)
+    ret = ssh_holder.send_command('ls')
+    print(ret.items())
+
     coltitles = ['JobID', 'JobName', 'StartTime', 'SubmissionTime', 'CompletionTime', 'State', 'CompletionCode']
     jobs = ssh_jobmanager.get_all_jobs(coltitles)
 
