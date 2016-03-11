@@ -66,14 +66,10 @@ class SSHBasedJobManager(JobManager):
         cmd = 'checkjob --xml {0}'.format(jobid)
         log = logging.getLogger(__name__)
         log.debug('Checking job details for {0}'.format(jobid))
-
         output = self.ssh.send_command(cmd)
-        if output['error'] is None:
-            # process data
-            print(output.items())
-        return output
 
-        pass
+
+        return output
 
     def submit_job(self, job):
         pass

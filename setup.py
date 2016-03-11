@@ -13,6 +13,9 @@ requires = [
     'pyramid_chameleon',
     'pyramid_debugtoolbar',
     'waitress',
+    'lxml',
+    'paramiko',
+    'scp'
     ]
 
 setup(name='SSHMonitor',

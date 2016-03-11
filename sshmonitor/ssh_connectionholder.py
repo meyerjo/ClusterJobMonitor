@@ -1,8 +1,10 @@
 import logging
+import socket
 
 import paramiko
 import sys
 
+from scp import SCPClient
 
 class SSHConnectionHolder:
 
@@ -36,18 +38,48 @@ class SSHConnectionHolder:
         else:
             log.error('No server specified')
 
+    def _read_output(self, input):
+        try:
+            return dict(error=None, content=input.readlines())
+        except BaseException as e:
+            return dict(error=str(e), content=None)
+
+    def connection_alive(self):
+        if self.ssh is None:
+            return False
+        try:
+            x = self.ssh.get_transport().is_active()
+            return True
+        except BaseException as e:
+            return False
+
+
     def send_command(self, command):
         if self.ssh is None:
             return dict(error='No ssh connection')
+        if not self.connection_alive():
+            self._establish_connection(self.ssh_param)
         try:
             stdin, stdout, stderr = self.ssh.exec_command(command)
-            lines = stdout.readlines()
-            lines = ''.join(lines)
+
+            stdin = self._read_output(stdin)
+            stdout = self._read_output(stdout)
+            stderr = self._read_output(stderr)
+
+            if stdout['error'] is None:
+                lines = ''.join(stdout['content'])
+            else:
+                lines = '<error>{0}</error>'.format(stdout['error'])
 
             return dict(error=None, stdin=stdin, stdout=stdout,
-                        stderr=stderr, stdoutstr=lines)
+                        stderr=stderr, stdoutstr=lines, errordetails=None)
+        except socket.error as e:
+            log = logging.getLogger(__name__)
+            log.error('Connection error with paramiko ssh client: {0}'.format(str(e)))
+            return dict(error=str(e), errordetails=None)
         except BaseException as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             log = logging.getLogger(__name__)
             log.error(str(e))
+            # reset connection once it is not alive anymore
             return dict(error=str(e), errordetails=exc_tb.tb_lineno)

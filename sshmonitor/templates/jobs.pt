@@ -43,6 +43,9 @@
                 </tr>
             </table>
         </div>
+        <div class="row" tal:condition="exists: details">
+            ${details}
+        </div>
     </div>
   </body>
 </html>
