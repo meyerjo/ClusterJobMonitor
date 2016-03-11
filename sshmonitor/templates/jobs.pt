@@ -33,14 +33,26 @@
                         Cancel
                     </th>
                 </tr>
-                <tr tal:repeat="row jobelements['body']">
-                    <td tal:repeat="val row">
-                        <span tal:content="val"></span>
-                    </td>
-                    <td tal:condition="python: (jobclass in ['active', 'eligible'])">
-                        <button value="${row[0]}" class="btn btn-danger">Cancel</button>
-                    </td>
-                </tr>
+                <span tal:repeat="row jobelements['body']">
+                    <tr>
+                        <td tal:repeat="val row">
+                            <span tal:content="val"></span>
+                        </td>
+                        <td tal:condition="python: (jobclass in ['active', 'eligible'])">
+                            <button value="${row[0]}" class="btn btn-danger">Cancel</button>
+                        </td>
+                    </tr>
+                    <tr tal:condition="exists:details" tal:condition="python: row[0] == details['JobID']">
+                        <td tal:attributes="colspan len(jobelements['header'])+1">
+                            <span tal:repeat="(key, val) details.items()">
+                                <div>
+                                    <span style="font-weight:bold;" tal:content="key"/>
+                                    <span tal:content="val"/>
+                                </div>
+                            </span>
+                        </td>
+                    </tr>
+                </span>
             </table>
         </div>
         <div class="row" tal:condition="exists: details">

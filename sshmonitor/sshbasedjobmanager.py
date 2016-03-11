@@ -67,7 +67,19 @@ class SSHBasedJobManager(JobManager):
         log = logging.getLogger(__name__)
         log.debug('Checking job details for {0}'.format(jobid))
         output = self.ssh.send_command(cmd)
-
+        if output['error'] is None:
+            lines = output['stdoutstr']
+            xml_output = ET.fromstring(lines)
+            jobs = xml_output.findall('job')
+            outputattribs = None
+            if len(jobs) == 1:
+                req_node = jobs[0].findall('req')
+                outputattribs = jobs[0].attrib
+                if len(req_node) == 1:
+                    outputattribs.update(req_node[0].attrib)
+            output = outputattribs
+        else:
+            output = output['error']
 
         return output
 
