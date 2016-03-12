@@ -1,7 +1,9 @@
 import logging
 import xml
 
+import datetime
 import paramiko
+import re
 
 from sshmonitor import JobManager
 import xml.etree.ElementTree as ET
@@ -77,13 +79,18 @@ class SSHBasedJobManager(JobManager):
                 outputattribs = jobs[0].attrib
                 if len(req_node) == 1:
                     outputattribs.update(req_node[0].attrib)
+                for (key, vals) in outputattribs.items():
+                    if re.search('Time$', key) and re.search('[0-9]*', vals):
+                        outputattribs[key] = '{0} ({1})'.format(vals,
+                                                                datetime.datetime.fromtimestamp(int(vals)).strftime('%Y-%m-%d %H:%M:%S'))
             output = outputattribs
         else:
             output = output['error']
-
         return output
 
     def submit_job(self, job):
+        log = logging.getLogger(__name__)
+        log.error('not yet implemented')
         pass
 
     def cancel_job(self, jobid):

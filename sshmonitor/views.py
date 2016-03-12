@@ -15,13 +15,22 @@ class JobRequests():
     def __init__(self, request):
         self._request = request
 
+
+    def _get_current_jobs(self, jobmanager, coltitles):
+        jobs = jobmanager.get_all_jobs()
+
+        jobs = jobmanager.filter_from_dict(jobs, coltitles)
+        jobs = jobmanager.convert_from_listdict_to_list(jobs, coltitles)
+        return jobs
+
+
     @view_config(route_name='jobs', renderer='templates/jobs.pt')
     def all_jobs(self):
         ssh_holder = self._request.registry.settings['ssh_holder']
         ssh_jobmanager = SSHBasedJobManager(ssh_holder)
 
         coltitles = ['JobID', 'JobName', 'StartTime', 'SubmissionTime', 'CompletionTime', 'State', 'CompletionCode']
-        jobs = ssh_jobmanager.get_all_jobs(coltitles)
+        jobs = self._get_current_jobs(ssh_jobmanager, coltitles)
 
         return {'project': 'SSHMonitor', 'jobs': jobs}
 
@@ -37,7 +46,7 @@ class JobRequests():
         log.info(return_canceljob)
 
         coltitles = ['JobID', 'JobName', 'StartTime', 'SubmissionTime', 'CompletionTime', 'State', 'CompletionCode']
-        jobs = ssh_jobmanager.get_all_jobs(coltitles)
+        jobs = self._get_current_jobs(ssh_jobmanager, coltitles)
         return {'project': 'SSHMonitor', 'jobs': jobs}
 
 
@@ -51,7 +60,7 @@ class JobRequests():
         ssh_holder = self._request.registry.settings['ssh_holder']
         ssh_jobmanager = SSHBasedJobManager(ssh_holder)
         coltitles = ['JobID', 'JobName', 'StartTime', 'SubmissionTime', 'CompletionTime', 'State', 'CompletionCode']
-        jobs = ssh_jobmanager.get_all_jobs(coltitles)
+        jobs = self._get_current_jobs(ssh_jobmanager, coltitles)
         return_details = ssh_jobmanager.get_job_details(details_jobid)
 
         return {'project': 'SSHMonitor', 'jobs': jobs, 'details': return_details}

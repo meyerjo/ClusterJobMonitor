@@ -12,6 +12,7 @@
 
     <!-- Bootstrap core CSS -->
     <link href="//oss.maxcdn.com/libs/twitter-bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
 
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -32,6 +33,9 @@
                     <th tal:condition="python: (isinstance(jobelements, dict)) and (jobclass in ['active', 'eligible'])">
                         Cancel
                     </th>
+                    <th>
+                        Details
+                    </th>
                 </tr>
                 <span tal:repeat="row jobelements['body']">
                     <tr>
@@ -39,24 +43,24 @@
                             <span tal:content="val"></span>
                         </td>
                         <td tal:condition="python: (jobclass in ['active', 'eligible'])">
-                            <button value="${row[0]}" class="btn btn-danger">Cancel</button>
+                            <a href="/canceljob/${row[0]}" value="${row[0]}" class="btn btn-danger">Cancel</a>
+                        </td>
+                        <td>
+                            <a href="/jobdetails/${row[0]}"><i class="fa fa-search-plus"></i></a>
                         </td>
                     </tr>
-                    <tr tal:condition="exists:details" tal:condition="python: row[0] == details['JobID']">
+                    <tr tal:condition="exists: details and ('JobID' in details) and (row[0] == details['JobID'])">
                         <td tal:attributes="colspan len(jobelements['header'])+1">
-                            <span tal:repeat="(key, val) details.items()">
-                                <div>
-                                    <span style="font-weight:bold;" tal:content="key"/>
-                                    <span tal:content="val"/>
-                                </div>
-                            </span>
+                            <table class="table table-striped table-bordered">
+                                <tr tal:repeat="(key, val) details.items()">
+                                    <td style="font-weight: bold;" tal:content="key"></td>
+                                    <td tal:content="val"></td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
                 </span>
             </table>
-        </div>
-        <div class="row" tal:condition="exists: details">
-            ${details}
         </div>
     </div>
   </body>
