@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="${request.locale_name}">
-  <head>
+<head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,31 +12,51 @@
 
     <!-- Bootstrap core CSS -->
     <link href="//oss.maxcdn.com/libs/twitter-bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
-      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
 
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
-      <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-      <script src="//oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="//oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
     <![endif]-->
-  </head>
+</head>
 
-  <body>
+<body>
+<nav class="navbar navbar-inverse">
     <div class="container">
-        <div class="row" tal:repeat="(jobclass, jobelements) jobs.items()">
-            <h1>${jobclass} (<span tal:content="len(jobelements['body']) if 'body' in jobelements else 0"></span>) </h1>
-            <table tal:condition="python: len(jobelements) >= 1 and ('header' in jobelements)" class="table table-responsive table-bordered table-striped">
-                <tr>
-                    <th tal:repeat="key jobelements['header']">
-                        <span tal:content="key"></span>
-                    </th>
-                    <th tal:condition="python: (isinstance(jobelements, dict)) and (jobclass in ['active', 'eligible'])">
-                        Cancel
-                    </th>
-                    <th>
-                        Details
-                    </th>
-                </tr>
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">${project}</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="/">Jobs <span class="sr-only">(current)</span></a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="container">
+    <div class="row" tal:repeat="(jobclass, jobelements) jobs.items()">
+        <h1>${jobclass} (<span tal:content="len(jobelements['body']) if 'body' in jobelements else 0"></span>) </h1>
+        <table tal:condition="python: len(jobelements) >= 1 and ('header' in jobelements)" class="table table-responsive table-bordered table-striped">
+            <tr>
+                <th tal:repeat="key jobelements['header']">
+                    <span tal:content="key"></span>
+                </th>
+                <th tal:condition="python: (isinstance(jobelements, dict)) and (jobclass in ['active', 'eligible'])">
+                    Cancel
+                </th>
+                <th>
+                    Details
+                </th>
+            </tr>
                 <span tal:repeat="row jobelements['body']">
                     <tr>
                         <td tal:repeat="val row">
@@ -60,8 +80,8 @@
                         </td>
                     </tr>
                 </span>
-            </table>
-        </div>
+        </table>
     </div>
-  </body>
+</div>
+</body>
 </html>

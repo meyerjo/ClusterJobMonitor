@@ -71,7 +71,12 @@ class SSHBasedJobManager(JobManager):
         output = self.ssh.send_command(cmd)
         if output['error'] is None:
             lines = output['stdoutstr']
-            xml_output = ET.fromstring(lines)
+            if lines == '':
+                return dict(error='Non existing jobid')
+            try:
+                xml_output = ET.fromstring(lines)
+            except BaseException as e:
+                return dict(error=str(e))
             jobs = xml_output.findall('job')
             outputattribs = None
             if len(jobs) == 1:

@@ -13,7 +13,8 @@ class Job(Base):
     jobdetails = Column(String, nullable=True)
     updatetime = Column(DateTime, nullable=False, default=datetime.datetime.utcnow())
 
-    def __init__(self, info):
+    def __init__(self, jobid, info):
+        self.id = jobid
         self.jobinfo = info
 
 class JobOutput(Base):
