@@ -1,4 +1,6 @@
+import fileinput
 import logging
+import os
 
 import jsonpickle
 from pyramid.config import Configurator
@@ -16,7 +18,11 @@ def main(global_config, **settings):
     FORMAT = '%(asctime)-15s [%(levelname)s] %(message)s'
     logging.basicConfig(format=FORMAT)
 
+    log = logging.getLogger(__name__)
     if 'ssh.connection_params' in settings:
+        if not os.path.exists(settings['ssh.connection_params']):
+            log.error('File containing SSH connection parameters does not exist')
+            exit(2)
         with open(settings['ssh.connection_params']) as f:
             ssh_param = jsonpickle.decode(f.read())
     else:
