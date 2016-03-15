@@ -101,7 +101,7 @@
                     <span tal:condition="exists: output">
                         <tr tal:condition="python: ('jobid' in output) and (row[0] == output['jobid'])">
                             <td tal:attributes="colspan len(jobelements['header'])+1">
-                                <h4>Output:</h4>
+                                <h4>Output:</h4><span tal:condition="python: 'type' in output">Source: ${output['type']}</span>
                                 <textarea class="col-sm-12" style="height: 200px;" tal:content="structure output['output']"></textarea>
                             </td>
                         </tr>

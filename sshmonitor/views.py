@@ -115,11 +115,10 @@ class JobRequests():
         jobs = self._get_current_jobs(ssh_jobmanager, coltitles)
 
         joboutput = ssh_jobmanager.get_job_output(jobid)
-        jobresult = None
         if 'error' in joboutput and joboutput['error'] is not None:
             jobresult = joboutput['error']
         else:
             jobresult = joboutput['content']
             jobresult = ''.join(jobresult)
 
-        return {'project': self._projectname, 'jobs': jobs, 'output': dict(jobid=jobid, output=jobresult)}
+        return {'project': self._projectname, 'jobs': jobs, 'output': dict(jobid=jobid, output=jobresult, type=joboutput['type'])}

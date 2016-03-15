@@ -13,7 +13,6 @@ class JobManager:
         if filteroptions is None:
             return input_dict
         assert(isinstance(filteroptions, list))
-        print(input_dict)
         for (key, val) in input_dict.items():
             if val is []:
                 continue
@@ -32,8 +31,6 @@ class JobManager:
         return input_dict
 
     def _preprocess_data(self, input_dict):
-        print(input_dict)
-        print(type(input_dict))
         assert(isinstance(input_dict, dict))
         for (key, item) in input_dict.items():
             if re.search('Time$', key) and re.search('[0-9]*', item):
@@ -45,7 +42,6 @@ class JobManager:
 
     def convert_from_listdict_to_list(self, listdict, filteroptions):
         assert(isinstance(listdict, dict))
-        print(listdict)
         updated_result = {}
         for (classkey, classmembers) in listdict.items():
             if len(classmembers) > 0:

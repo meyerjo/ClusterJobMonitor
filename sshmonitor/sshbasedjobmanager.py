@@ -132,6 +132,12 @@ class SSHBasedJobManager(JobManager):
             return output['stdout']
 
         stdout = output['stdout']
+        stdout['type'] = 'stdout'
+        if not stdout['content']:
+            if 'stderr' in output:
+                if output['stderr']['content']:
+                    stdout = output['stderr']
+                    stdout['type'] = 'stderr'
         return stdout
 
 
