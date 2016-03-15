@@ -105,5 +105,34 @@ class SSHBasedJobManager(JobManager):
         ret = self.ssh.send_command(cmd)
         return ret
 
+    def get_job_output(self, jobid):
+        log = logging.getLogger(__name__)
+        log.info('Retrieve job info')
+
+        details = self.get_job_details(jobid)
+        if ('error' in details) and (details['error'] is not None):
+            log.error(details['error'])
+            return details
+        try:
+            stdout = details['StdOut']
+            stdout = stdout.replace('%j', '%i')
+            jobid = details['JobID']
+            expected_file = stdout % int(jobid)
+        except BaseException as e:
+            log.error('Error during expected file retrieval {0}'.format(str(e)))
+            return details
+
+        output = self.ssh.send_command('cat {0}'.format(expected_file))
+        if 'error' in output and output['error'] is not None:
+            log.warning('Error in response')
+            return output
+
+        if 'error' in output['stdout'] and output['stdout']['error'] is not None:
+            log.warning('Error in stdout structure')
+            return output['stdout']
+
+        stdout = output['stdout']
+        return stdout
+
 
 

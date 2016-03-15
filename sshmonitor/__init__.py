@@ -1,4 +1,5 @@
 import fileinput
+import getpass
 import logging
 import os
 
@@ -40,6 +41,7 @@ def main(global_config, **settings):
     config.add_route('home', '/home')
     config.add_route('job_details', '/jobdetails/{jobid}')
     config.add_route('cancel_job', '/canceljob/{jobid}')
+    config.add_route('joboutput', '/joboutput/{jobid}')
     config.add_route('jobs', '/')
     config.scan()
     return config.make_wsgi_app()

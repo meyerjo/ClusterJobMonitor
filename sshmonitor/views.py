@@ -19,6 +19,7 @@ class JobRequests():
 
     def __init__(self, request):
         self._request = request
+        self._projectname = 'ClusterManagement'
 
     def _write_jobinfo_to_db(self, jobs):
         log = logging.getLogger(__name__)
@@ -60,7 +61,7 @@ class JobRequests():
         coltitles = ['JobID', 'JobName', 'StartTime', 'SubmissionTime', 'CompletionTime', 'State', 'CompletionCode']
         jobs = self._get_current_jobs(ssh_jobmanager, coltitles)
 
-        return {'project': 'SSHMonitor', 'jobs': jobs}
+        return {'project': self._projectname, 'jobs': jobs}
 
 
     @view_config(route_name='cancel_job', renderer='templates/jobs.pt')
@@ -75,7 +76,7 @@ class JobRequests():
 
         coltitles = ['JobID', 'JobName', 'StartTime', 'SubmissionTime', 'CompletionTime', 'State', 'CompletionCode']
         jobs = self._get_current_jobs(ssh_jobmanager, coltitles)
-        return {'project': 'SSHMonitor', 'jobs': jobs}
+        return {'project': self._projectname, 'jobs': jobs}
 
 
     @view_config(route_name='job_details', renderer='templates/jobs.pt')
@@ -97,7 +98,28 @@ class JobRequests():
         if job is not None:
             job.jobdetails = jsonpickle.encode(return_details)
             DBSession.commit()
+        return {'project': self._projectname, 'jobs': jobs, 'details': return_details}
 
 
+    @view_config(route_name='joboutput', renderer='templates/jobs.pt')
+    def job_output(self):
+        log = logging.getLogger(__name__)
 
-        return {'project': 'SSHMonitor', 'jobs': jobs, 'details': return_details}
+        jobid = self._request.matchdict['jobid']
+        log.info('Request job output for id:{0}'.format(jobid))
+
+        ssh_holder = self._request.registry.settings['ssh_holder']
+        ssh_jobmanager = SSHBasedJobManager(ssh_holder)
+
+        coltitles = ['JobID', 'JobName', 'StartTime', 'SubmissionTime', 'CompletionTime', 'State', 'CompletionCode']
+        jobs = self._get_current_jobs(ssh_jobmanager, coltitles)
+
+        joboutput = ssh_jobmanager.get_job_output(jobid)
+        jobresult = None
+        if 'error' in joboutput and joboutput['error'] is not None:
+            jobresult = joboutput['error']
+        else:
+            jobresult = joboutput['content']
+            jobresult = ''.join(jobresult)
+
+        return {'project': self._projectname, 'jobs': jobs, 'output': dict(jobid=jobid, output=jobresult)}

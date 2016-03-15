@@ -18,6 +18,11 @@ class JobManager:
             if val is []:
                 continue
             for i, r in enumerate(val):
+                if not isinstance(r, dict):
+                    log = logging.getLogger(__name__)
+                    log.warning('Element is not a dict and it should be one')
+                    log.warning(val)
+                    continue
                 available_keys = r.keys()
                 keys_to_delete = [x for x in available_keys if x not in filteroptions]
                 if r is None:
@@ -92,4 +97,7 @@ class JobManager:
         pass
 
     def get_job_details(self, jobid):
+        pass
+
+    def get_job_output(self, jobid):
         pass
