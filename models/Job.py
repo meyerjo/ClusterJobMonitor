@@ -21,10 +21,12 @@ class JobOutput(Base):
 
     __tablename__ = 'joboutput'
 
-    id = Column(Integer, ForeignKey('job.id'), primary_key=True)
+    id = Column(Integer, primary_key=True)
+    jobid = Column(Integer, ForeignKey('job.id'))
     output = Column(String, nullable=False)
+    createtime = Column(DateTime, nullable=False, default=datetime.datetime.utcnow())
 
     def __init__(self, id, output):
-        self.id = id
+        self.jobid = id
         self.output = output
 

@@ -6,7 +6,7 @@ import jsonpickle
 from pyramid.view import view_config
 
 from models import DBSession
-from models.Job import Job
+from models.Job import Job, JobOutput
 from sshmonitor import SSHBasedJobManager
 
 
@@ -92,7 +92,6 @@ class JobRequests():
         jobs = self._get_current_jobs(ssh_jobmanager, coltitles)
         return_details = ssh_jobmanager.get_job_details(details_jobid)
 
-
         # write details to the database
         job = DBSession.query(Job).filter(Job.id == details_jobid).first()
         if job is not None:
@@ -115,6 +114,11 @@ class JobRequests():
         jobs = self._get_current_jobs(ssh_jobmanager, coltitles)
 
         joboutput = ssh_jobmanager.get_job_output(jobid)
+
+        db_joboutput = JobOutput(id=jobid, output=jsonpickle.encode(joboutput))
+        DBSession.add(db_joboutput)
+        DBSession.commit()
+
         if 'error' in joboutput and joboutput['error'] is not None:
             jobresult = joboutput['error']
         else:
