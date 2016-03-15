@@ -9,3 +9,7 @@ Purpose of this project is to enable users of the BWUniCluster to easily monitor
 ** paramiko
 *** Installation on windows can be quite painful: In case of problems regarding the vsvarsall.bat you have to install VS Community Edition 2015 and enable the Common C++ Tools
 ** scp
+
+# TODO
+* Web interface to add user authentifications
+* Add interface to add files to monitor
