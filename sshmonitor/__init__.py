@@ -1,5 +1,3 @@
-import fileinput
-import getpass
 import logging
 import os
 
@@ -8,8 +6,8 @@ from pyramid.config import Configurator
 from sqlalchemy import engine_from_config
 
 from models import initialize_sql
+from ssh.ssh_connectionholder import SSHConnectionHolder
 from sshmonitor.jobmanager import JobManager
-from sshmonitor.ssh_connectionholder import SSHConnectionHolder
 from sshmonitor.sshbasedjobmanager import SSHBasedJobManager
 
 
@@ -42,6 +40,11 @@ def main(global_config, **settings):
     config.add_route('job_details', '/jobdetails/{jobid}')
     config.add_route('cancel_job', '/canceljob/{jobid}')
     config.add_route('joboutput', '/joboutput/{jobid}')
+
+    config.add_route('filemonitor', '/filemonitor')
+    config.add_route('filemonitor_editor', '/filemonitor/{modus}/{options}')
+
+    config.add_route('sshconfiguration', '/sshconfiguration')
     config.add_route('jobs', '/')
     config.scan()
     return config.make_wsgi_app()

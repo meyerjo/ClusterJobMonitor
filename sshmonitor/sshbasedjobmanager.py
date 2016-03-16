@@ -1,14 +1,11 @@
-import logging
-import xml
-
 import datetime
-import paramiko
+import logging
 import re
-
-from sshmonitor import JobManager
+import xml
 import xml.etree.ElementTree as ET
 
-from sshmonitor.ssh_connectionholder import SSHConnectionHolder
+from ssh.ssh_connectionholder import SSHConnectionHolder
+from sshmonitor import JobManager
 
 
 class SSHBasedJobManager(JobManager):

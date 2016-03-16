@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="${request.locale_name}">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="pyramid web application">
+    <meta name="author" content="Pylons Project">
+    <link rel="shortcut icon" href="${request.static_url('sshmonitor:static/pyramid-16x16.png')}">
+
+    <title>Starter Scaffold for The Pyramid Web Framework</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="//oss.maxcdn.com/libs/twitter-bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+    <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="//oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+<nav class="navbar navbar-inverse">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">${project}</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="/">Jobs <span class="sr-only">(current)</span></a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="container">
+    <div class="row">
+        <div class="alert alert-warning" role="alert">
+            Warning! If you serve the server via http your password is transmitted unencrypted.
+        </div>
+    </div>
+    <div class="row" tal:condition="exists: error">
+        <div class="alert alert-danger" role="alert" tal:condition="python: error is not None">
+            <span tal:content="error"></span>
+        </div>
+        <div class="alert alert-success" role="alert" tal:condition="python: error is None">
+            No error occured!
+        </div>
+    </div>
+    <div class="row">
+        <form action="/sshconfiguration" method="POST">
+            <div class="row">
+                <div class="col-sm-3"><label for="servername">Server:</label></div>
+                <div class="col-sm-9"><input type="text" name="servername" placeholder="Serveraddress" /></div>
+            </div>
+            <div class="row">
+                <div class="col-sm-3"><label for="portnumber">Port:</label></div>
+                <div class="col-sm-9"><input type="text" pattern="[0-9]{1,5}" title="Portnumber must be a number between 0 and 65536" name="portnumber" placeholder="Port" value="22"/></div>
+            </div>
+            <div class="row">
+                <div class="col-sm-3"><label for="username">Username:</label></div>
+                <div class="col-sm-9"><input type="text" name="username" placeholder="Username" class="input-large"/></div>
+            </div>
+            <div class="row">
+                <div class="col-sm-3"><label for="password">Passwort:</label></div>
+                <div class="col-sm-4"><input type="password" name="password" placeholder="Passwort" class="input-large"/></div>
+                <div class="col-sm-4"><input type="password" name="password_repeat" placeholder="Repeat password" class="input-large"/></div>
+            </div>
+            <button class="btn btn-default" type="submit" name="submit_button" value="save">Speichern</button>
+            <button class="btn btn-default" type="submit" name="submit_button" value="test">Test</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>
