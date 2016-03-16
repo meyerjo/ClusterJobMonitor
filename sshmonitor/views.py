@@ -27,17 +27,20 @@ class JobRequests():
         for (classname, classmembers) in jobs.items():
             if len(classmembers) > 0:
                 for element in classmembers:
-                    if 'JobID' in element and re.search('[0-9]*', element['JobID']):
-                        dbrow = DBSession.query(Job).filter(Job.id == element['JobID']).all()
-                        if len(dbrow) == 0:
-                            j = Job(element['JobID'], jsonpickle.encode(element))
-                            DBSession.add(j)
-                        elif len(dbrow) == 1:
-                            dbrow[0].jobinfo = jsonpickle.encode(element)
-                        else:
-                            log.info('More than one entry for jobid')
-                    else:
+                    if 'JobID' not in element:
                         log.debug('Row didnt match specified criteria {0}'.format(element))
+                        continue
+                    if not re.search('[0-9]*', element['JobID']):
+                        log.debug('Row didnt match specified criteria {0}'.format(element))
+                        continue
+                    dbrow = DBSession.query(Job.id, Job.updatetime).filter(Job.id == element['JobID']).all()
+                    if len(dbrow) == 0:
+                        j = Job(element['JobID'], jsonpickle.encode(element))
+                        DBSession.add(j)
+                    elif len(dbrow) == 1:
+                        dbrow[0].jobinfo = jsonpickle.encode(element)
+                    else:
+                        log.error('More than one entry for jobid: {0}'.format(jsonpickle.encode(element)))
         DBSession.commit()
 
     def _get_current_jobs(self, jobmanager, coltitles):
@@ -104,9 +107,10 @@ class JobRequests():
         jobs = self._get_current_jobs(ssh_jobmanager, self._coltitles)
         joboutput = ssh_jobmanager.get_job_output(jobid)
 
-        db_joboutput = JobOutput(id=jobid, output=jsonpickle.encode(joboutput))
-        DBSession.add(db_joboutput)
-        DBSession.commit()
+        if 'error' in joboutput and joboutput['error'] is None:
+            db_joboutput = JobOutput(id=jobid, output=jsonpickle.encode(joboutput))
+            DBSession.add(db_joboutput)
+            DBSession.commit()
 
         if 'error' in joboutput and joboutput['error'] is not None:
             jobresult = joboutput['error']

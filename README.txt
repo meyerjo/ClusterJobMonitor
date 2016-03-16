@@ -13,3 +13,4 @@ Purpose of this project is to enable users of the BWUniCluster to easily monitor
 # TODO
 * Web interface to add user authentifications
 * Add interface to add files to monitor
+* allow user to configure a cronjob which updates the database

@@ -120,6 +120,7 @@ class SSHBasedJobManager(JobManager):
             expected_file = stdout % int(jobid)
         except BaseException as e:
             log.error('Error during expected file retrieval {0}'.format(str(e)))
+            details['error'] = 'Error during expected file retrieval {0}'.format(str(e))
             return details
 
         output = self.ssh.send_command('cat {0}'.format(expected_file))
