@@ -14,10 +14,6 @@ from sshmonitor import SSHBasedJobManager
 def my_view(request):
     return {'project': 'SSHMonitor'}
 
-@view_config(route_name='filemonitor', renderer='templates/filemonitoring.pt')
-@view_config(route_name='filemonitor_editor', renderer='templates/filemonitoring.pt')
-def dummy(request):
-    return {'error':'not yet implemented', 'project': 'Not yet implemented'}
 
 class JobRequests():
 

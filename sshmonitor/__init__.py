@@ -43,6 +43,7 @@ def main(global_config, **settings):
 
     config.add_route('filemonitor', '/filemonitor')
     config.add_route('filemonitor_editor', '/filemonitor/{modus}/{options}')
+    config.add_route('filebrowser', '/browser')
 
     config.add_route('sshconfiguration', '/sshconfiguration')
     config.add_route('jobs', '/')

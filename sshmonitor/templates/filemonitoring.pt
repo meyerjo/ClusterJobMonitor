@@ -44,7 +44,55 @@
 </nav>
 <div class="container">
     <div class="row">
-        <h1>TODO: filemonitoring</h1>
+        <div class="col-sm-3">Current folder:</div>
+        <div class="col-sm-3">
+            <span tal:content="content['folder']"></span>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-3">Total:</div>
+        <div class="col-sm-3">
+            <span tal:content="content['title']"></span>
+        </div>
+    </div>
+    <div class="row" tal:define="parts content['folder'].split('/')">
+        <span tal:repeat="(i, part) enumerate(parts)">
+            <span  tal:define="path '/'.join(parts[:i+1])">
+                <span>/</span>
+                <a href="?folder=${path}&currentfolder=${content['folder']}">${part}</a>
+            </span>
+        </span>
+    </div>
+    <div class="row">
+        <table class="table table-hovered table-responsive table-striped">
+            <tr>
+                <th>Permissions</th>
+                <th>Links</th>
+                <th>Owner</th>
+                <th>Group</th>
+                <th>Date</th>
+                <th>Size</th>
+                <th>Name</th>
+            </tr>
+            <tr>
+                <td colspan="6"></td>
+                <td><a href="?folder=..&currentfolder=${content['folder']}">..</a></td>
+            </tr>
+            <tr tal:repeat="l content['lines']">
+                <td><span tal:content="l['permission']"></span></td>
+                <td><span tal:content="l['number_of_links']"></span></td>
+                <td><span tal:content="l['owner']"></span></td>
+                <td><span tal:content="l['group']"></span></td>
+                <td><span tal:content="l['date']"></span></td>
+                <td><span tal:content="l['filesize']"></span></td>
+                <td>
+                    <span tal:switch="python: l['permission'].startswith('d')">
+                        <a tal:case="True" href="?folder=${l['name']}&currentfolder=${content['folder']}"><span tal:content="l['name']"></span></a>
+                        <span tal:case="False" tal:content="l['name']"></span>
+                    </span>
+                </td>
+            </tr>
+        </table>
     </div>
 </div>
 </body>
