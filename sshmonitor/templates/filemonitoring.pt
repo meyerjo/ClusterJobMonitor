@@ -24,9 +24,17 @@
     <script type="text/javascript">
         <!-- TODO: fix problem importing -->
         $(document).ready(function() {
+
             $(function () {
               $('[data-toggle="tooltip"]').tooltip()
             })
+
+            $('#select_allfiles').on('change', function() {
+                check_value = $(this).is(':checked');
+                all_child_divs = $('#browser').find('input.select_file').each(function() {
+                    $(this).prop("checked", check_value);
+                });
+            });
         });
     </script>
 </head>
@@ -78,7 +86,7 @@
             </span>
         </div>
         <div class="col-sm-4">
-            <form action="/browser" method="get">
+            <form action="${request.route_url('filebrowser')}" method="get">
                 <input type="hidden" name="currentfolder" value="${content['folder']}"/>
                 <input type="text" class="input-large" id="folderinput" name="folder"/>
                 <button class="btn btn-default">Browse</button>
@@ -90,56 +98,58 @@
         </div>
     </div>
     <div class="row">
-        <table class="table table-responsive table-striped">
-            <tr>
-                <td>
-                    <button class="btn btn-default" value="monitorfiles" id="monitorbutton">Monitor (selected files)</button>
-                </td>
-                <td>
-                    Options:
-                </td>
-                <td>
-                    <label for="withmd5">Check existence and equality:</label>
-                    <button data-toggle="tooltip" data-placement="top" title="You can decide whether server should only check for existence or if it should also check the md5 hash of the file"><i class="fa fa-question"></i></button>
-                    <input type="checkbox" value="only_existence" name="withmd5"/>
-                </td>
-            </tr>
-        </table>
-        <table class="table table-hovered table-responsive table-striped">
-            <tr>
-                <th>Select <input type="checkbox" value="all" name="allfiles" id="select_allfiles"/></th>
-                <th>Permissions</th>
-                <th>Links</th>
-                <th>Owner</th>
-                <th>Group</th>
-                <th>Date</th>
-                <th>Size</th>
-                <th>Name</th>
-            </tr>
-            <tr>
-                <td colspan="6"></td>
-                <td><a href="?folder=..&currentfolder=${content['folder']}">..</a></td>
-            </tr>
-            <tr tal:repeat="l content['lines']">
-                <td>
-                    <span tal:condition="python: not l['permission'].startswith('d')">
-                        <input type="checkbox" value="${content['folder']}/${l['name']}" class="select_file"/>
-                    </span>
-                </td>
-                <td><span tal:content="l['permission']"></span></td>
-                <td><span tal:content="l['number_of_links']"></span></td>
-                <td><span tal:content="l['owner']"></span></td>
-                <td><span tal:content="l['group']"></span></td>
-                <td><span tal:content="l['date']"></span></td>
-                <td><span tal:content="l['filesize']"></span></td>
-                <td>
-                    <span tal:switch="python: l['permission'].startswith('d')">
-                        <a tal:case="True" href="?folder=${l['name']}&currentfolder=${content['folder']}"><span tal:content="l['name']"></span></a>
-                        <span tal:case="False" tal:content="l['name']"></span>
-                    </span>
-                </td>
-            </tr>
-        </table>
+        <form action="${request.route_url('filemonitor')}">
+            <table class="table table-responsive table-striped">
+                <tr>
+                    <td>
+                        <button class="btn btn-default" value="monitorfiles" id="monitorbutton" type="submit">Monitor (selected files)</button>
+                    </td>
+                    <td>
+                        Options:
+                    </td>
+                    <td>
+                        <label for="withmd5">Check existence and equality:</label>
+                        <button data-toggle="tooltip" data-placement="top" title="You can decide whether server should only check for existence or if it should also check the md5 hash of the file"><i class="fa fa-question"></i></button>
+                        <input type="checkbox" value="only_existence" name="withmd5"/>
+                    </td>
+                </tr>
+            </table>
+            <table class="table table-hovered table-responsive table-striped" id="browser">
+                <tr>
+                    <th>Select <input type="checkbox" value="all" name="allfiles" id="select_allfiles"/></th>
+                    <th>Permissions</th>
+                    <th>Links</th>
+                    <th>Owner</th>
+                    <th>Group</th>
+                    <th>Date</th>
+                    <th>Size</th>
+                    <th>Name</th>
+                </tr>
+                <tr>
+                    <td colspan="6"></td>
+                    <td><a href="?folder=..&currentfolder=${content['folder']}">..</a></td>
+                </tr>
+                <tr tal:repeat="l content['lines']">
+                    <td>
+                        <span tal:condition="python: not l['permission'].startswith('d')">
+                            <input type="checkbox" value="${content['folder']}/${l['name']}" class="select_file" name="file"/>
+                        </span>
+                    </td>
+                    <td><span tal:content="l['permission']"></span></td>
+                    <td><span tal:content="l['number_of_links']"></span></td>
+                    <td><span tal:content="l['owner']"></span></td>
+                    <td><span tal:content="l['group']"></span></td>
+                    <td><span tal:content="l['date']"></span></td>
+                    <td><span tal:content="l['filesize']"></span></td>
+                    <td>
+                        <span tal:switch="python: l['permission'].startswith('d')">
+                            <a tal:case="True" href="?folder=${l['name']}&currentfolder=${content['folder']}"><span tal:content="l['name']"></span></a>
+                            <span tal:case="False" tal:content="l['name']"></span>
+                        </span>
+                    </td>
+                </tr>
+            </table>
+        </form>
     </div>
 </div>
 </body>
