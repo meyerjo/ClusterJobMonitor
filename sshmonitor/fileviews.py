@@ -1,6 +1,8 @@
 import logging
 
+from pyramid.request import Request
 from pyramid.view import view_config
+from webob.multidict import NestedMultiDict
 
 from ssh.sshfilebrowser import SSHFileBrowser
 from sshmonitor import SSHBasedJobManager
@@ -14,9 +16,25 @@ class FileViews:
 
 
     @view_config(route_name='filemonitor', renderer='templates/filemonitoring.pt')
-    @view_config(route_name='filemonitor_editor', renderer='templates/filemonitoring.pt')
     def dummy(request):
-        return {'error':'not yet implemented', 'project': 'Not yet implemented'}
+        return {'error': 'not yet implemented', 'project': 'Not yet implemented'}
+
+
+    @view_config(route_name='filemonitor_editor', renderer='templates/filemonitoring.pt')
+    def filemonitoring(self):
+        if self._request.matchdict['modus'] == 'add':
+            if self._request.matchdict['options'] == 'files':
+                print(self._request.params)
+                if self._request.params is not []:
+                    md5_enabled = True if 'withmd5' in self._request.params and self._request.params['withmd5'] == '0' else False
+                    all_files = self._request.params.getall('file')
+
+                subreq = Request.blank(self._request.route_path('filebrowser'),
+                                       POST=dict(folder=self._request.params['folder'],
+                                                 currentfolder=self._request.params['currentfolder'],
+                                                 pathdescription='abs'))
+                return self._request.invoke_subrequest(subreq)
+
 
     @view_config(route_name='filebrowser', renderer='templates/filemonitoring.pt')
     def browse_files(self):
