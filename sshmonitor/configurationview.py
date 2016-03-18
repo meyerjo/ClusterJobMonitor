@@ -39,10 +39,9 @@ class ConfigurationView:
 
         if self._request.params.get('submit_button') == 'submit':
             try:
-                print('test')
                 json = jsonpickle.encode(obj)
-                # with open(self._request.params['ssh.connection_params'], 'w+') as settings:
-                #     settings.write(json)
+                with open(self._request.params['ssh.connection_params'], 'w+') as settings:
+                    settings.write(json)
             except Exception as e:
                 return dict(project=self._projectname, error=str(e))
         elif self._request.params.get('submit_button') == 'test':
