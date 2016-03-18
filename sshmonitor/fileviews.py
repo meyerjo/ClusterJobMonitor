@@ -26,14 +26,19 @@ class FileViews:
         print(self._request.params)
         folder = self._request.params['folder'] if 'folder' in self._request.params else '.'
         currentfolder = self._request.params['currentfolder'] if 'currentfolder' in self._request.params else '.'
-        if folder.startswith('/'):
-            folder_request = folder
-        elif folder == '.':
-            folder_request = '.'
-        else:
-            folder_request = '{0}/{1}'.format(currentfolder, folder)
+        reference_type = self._request.params['pathdescription'] if 'pathdescription' in self._request.params else 'rel'
+        # do some reference mambo jambo
+        if reference_type == 'rel':
+            if folder == '.':
+                folder_request = '.'
+            else:
+                folder_request = '{0}/{1}'.format(currentfolder, folder)
+        elif reference_type == 'abs':
+            if folder == '':
+                folder_request = '.'
+            else:
+                folder_request = folder
+
         log.info('Requesting folder: {0}'.format(folder_request))
         output = ssh_jobmanager.get_folder_content(folder_request)
-        print(output)
-
         return {'project': 'FileBrowser', 'content': output}

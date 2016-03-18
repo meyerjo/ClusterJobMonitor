@@ -64,7 +64,7 @@
             </div>
             <div class="row">
                 <div class="col-sm-3"><label for="portnumber">Port:</label></div>
-                <div class="col-sm-9"><input type="text" pattern="[0-9]{1,5}" title="Portnumber must be a number between 0 and 65536" name="portnumber" placeholder="Port" value="22"/></div>
+                <div class="col-sm-9"><input type="number" min="0" max="65536" pattern="[0-9]{1,5}" title="Portnumber must be a number between 0 and 65536" name="portnumber" placeholder="Port" value="22"/></div>
             </div>
             <div class="row">
                 <div class="col-sm-3"><label for="username">Username:</label></div>

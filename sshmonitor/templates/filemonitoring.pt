@@ -14,11 +14,21 @@
     <link href="//oss.maxcdn.com/libs/twitter-bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
 
+    <script href="${request.static_url('sshmonitor:static/bootstrap/js/bootstrap.min.js')}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-beta1/jquery.min.js"></script>
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
     <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
     <script src="//oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
     <![endif]-->
+    <script type="text/javascript">
+        <!-- TODO: fix problem importing -->
+        $(document).ready(function() {
+            $(function () {
+              $('[data-toggle="tooltip"]').tooltip()
+            })
+        });
+    </script>
 </head>
 
 <body>
@@ -56,16 +66,48 @@
         </div>
     </div>
     <div class="row" tal:define="parts content['folder'].split('/')">
-        <span tal:repeat="(i, part) enumerate(parts)">
-            <span  tal:define="path '/'.join(parts[:i+1])">
-                <span>/</span>
-                <a href="?folder=${path}&currentfolder=${content['folder']}">${part}</a>
+        <div class="col-sm-2">
+            Navigation:
+        </div>
+        <div class="col-sm-6">
+            <span tal:repeat="(i, part) enumerate(parts)">
+                <span  tal:define="path '/'.join(parts[:i+1])">
+                    <span>/</span>
+                    <a href="?folder=${path}&currentfolder=${content['folder']}">${part}</a>
+                </span>
             </span>
-        </span>
+        </div>
+        <div class="col-sm-4">
+            <form action="/browser" method="get">
+                <input type="hidden" name="currentfolder" value="${content['folder']}"/>
+                <input type="text" class="input-large" id="folderinput" name="folder"/>
+                <button class="btn btn-default">Browse</button>
+                <select name="pathdescription">
+                    <option value="abs">absolute</option>
+                    <option value="rel">relative</option>
+                </select>
+            </form>
+        </div>
     </div>
     <div class="row">
+        <table class="table table-responsive table-striped">
+            <tr>
+                <td>
+                    <button class="btn btn-default" value="monitorfiles" id="monitorbutton">Monitor (selected files)</button>
+                </td>
+                <td>
+                    Options:
+                </td>
+                <td>
+                    <label for="withmd5">Check existence and equality:</label>
+                    <button data-toggle="tooltip" data-placement="top" title="You can decide whether server should only check for existence or if it should also check the md5 hash of the file"><i class="fa fa-question"></i></button>
+                    <input type="checkbox" value="only_existence" name="withmd5"/>
+                </td>
+            </tr>
+        </table>
         <table class="table table-hovered table-responsive table-striped">
             <tr>
+                <th>Select <input type="checkbox" value="all" name="allfiles" id="select_allfiles"/></th>
                 <th>Permissions</th>
                 <th>Links</th>
                 <th>Owner</th>
@@ -79,6 +121,11 @@
                 <td><a href="?folder=..&currentfolder=${content['folder']}">..</a></td>
             </tr>
             <tr tal:repeat="l content['lines']">
+                <td>
+                    <span tal:condition="python: not l['permission'].startswith('d')">
+                        <input type="checkbox" value="${content['folder']}/${l['name']}" class="select_file"/>
+                    </span>
+                </td>
                 <td><span tal:content="l['permission']"></span></td>
                 <td><span tal:content="l['number_of_links']"></span></td>
                 <td><span tal:content="l['owner']"></span></td>
