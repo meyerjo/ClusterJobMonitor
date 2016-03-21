@@ -21,10 +21,6 @@ class SSHFileBrowser:
             linesplit = line.split(' ')
             linesplit = [c for c in linesplit if c]
             if len(linesplit) >= 8:
-                # if not re.search('^\d+$', linesplit[7]):
-                #     d = datetime.datetime.strptime(' '.join(linesplit[5:8]), '%b %d %H:%M')
-                # else:
-                #     d = datetime.datetime.strptime(' '.join(linesplit[5:8]), '%b %d %Y')
                 tmp = dict(permission=linesplit[0], number_of_links=linesplit[1], owner=linesplit[2], group=linesplit[3],
                            filesize=linesplit[4], date=' '.join(linesplit[5:7]), name=linesplit[7], additional=linesplit[8:])
                 parsed['lines'].append(tmp)
@@ -37,8 +33,11 @@ class SSHFileBrowser:
         if folder is None:
             folder = '.'
         cmd = 'cd {0}; pwd; ls -l -q -1 --time-style=long-iso'.format(folder)
-
+        log = logging.getLogger(__name__)
         output = self._ssh.send_command(cmd)
+        if output['error'] is not None:
+            log.info('Get folder retrieval is stopping early: {0}'.format(output['error']))
+            return output
         stderrstr = '\n'.join(output['stderr'])
         if re.search('bash: no such', stderrstr):
             return dict(error='Error in stderr: {0}'.format(stderrstr))
@@ -53,12 +52,4 @@ class SSHFileBrowser:
         parsed = self.parse_ls_output(stdout[1:])
         parsed.update(dict(folder=folder_after_cd))
         return parsed
-
-
-
-
-
-
-
-
 

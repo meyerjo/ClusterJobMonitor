@@ -1,5 +1,7 @@
 import logging
+import os
 
+import re
 import transaction
 from pyramid.request import Request
 from pyramid.view import view_config
@@ -22,6 +24,14 @@ class FileViews:
     def dummy(request):
         return {'error': 'not yet implemented', 'project': 'Not yet implemented'}
 
+    def _get_monitored_files(self, path):
+        res = DBSession.query(MonitoredFile.complete_filepath,
+                              MonitoredFile.filename,
+                              MonitoredFile.folder).filter(MonitoredFile.folder == path).all()
+        complete_filename = [r[0] for r in res]
+        filename = [r[1] for r in res]
+        folder = [r[2] for r in res]
+        return complete_filename, filename, folder
 
     @view_config(route_name='filemonitor_editor', renderer='templates/filemonitoring.pt')
     def filemonitoring(self):
@@ -32,16 +42,27 @@ class FileViews:
                     # TODO: add this information to the file
                     md5_enabled = True if 'withmd5' in self._request.params and self._request.params['withmd5'] == '0' else False
                     all_files = self._request.params.getall('file')
-                    print(all_files)
+
+                    complete_file, filenames, folders = self._get_monitored_files(self._request.params['folder'] + '/')
+
+                    log.info(complete_file)
+
                     with transaction.manager:
                         for f in all_files:
-                            dbobj = MonitoredFile(f)
+                            if f in complete_file:
+                                log.debug('Skipping file {0}, because it is already monitored'.format(f))
+                                continue
+                            (path, filename) = os.path.split(f)
+                            dbobj = MonitoredFile(path, filename, f)
                             DBSession.add(dbobj)
                         DBSession.commit()
-                        log.info('Still have to delete files in this folder which are missing')
+                    files_not_mentioned = [c for c in complete_file if c not in all_files]
+                    log.info('TODO: Still have to decide whether files which are not selected should be deleted or not.'
+                             'Affected files would be: {0}'.format(files_not_mentioned))
                 else:
-                    # TODO: delete files from database
-                    log.info('Have to delete files in this browser')
+                    log.info('Got an empty request, going to redirect to start page')
+                    subreq = Request.blank('/')
+                    return self._request.invoke_subrequest(subreq)
 
                 subreq = Request.blank(self._request.route_path('filebrowser'),
                                        POST=dict(folder=self._request.params['folder'],

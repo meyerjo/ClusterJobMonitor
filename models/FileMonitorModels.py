@@ -9,12 +9,21 @@ class MonitoredFile(Base):
 
     __tablename__ = 'monitoredfile'
 
-    id = Column(Integer, primary_key=True)
-    filepath = Column(String, nullable=False)
+    id = Column(Integer, nullable=False, primary_key=True)
+    complete_filepath = Column(String, nullable=False)
+    folder = Column(String, nullable=False, default='/')
+    filename = Column(String, nullable=False)
     createtime = Column(DateTime, default=datetime.datetime.utcnow())
 
-    def __init__(self, filepath):
-        self.filepath = filepath
+    def __init__(self, folder, filename, complete_filepath=None):
+        if not folder.endswith('/'):
+            folder = folder + '/'
+        if complete_filepath is None:
+            complete_filepath = folder + filename
+
+        self.folder = folder
+        self.filename = filename
+        self.complete_filepath = complete_filepath
 
 class MonitoredFileSource(Base):
 
