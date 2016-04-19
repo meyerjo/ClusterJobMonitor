@@ -42,8 +42,14 @@ class JobManager:
 
     def convert_from_listdict_to_list(self, listdict, filteroptions):
         assert(isinstance(listdict, dict))
+        log = logging.getLogger(__name__)
         updated_result = {}
         for (classkey, classmembers) in listdict.items():
+            if re.search('^error', classkey):
+                log.info('Skipping classkey {0}, because it matches the regex \'^error\''.format(classkey))
+                updated_result[classkey] = classmembers
+                continue
+
             if len(classmembers) > 0:
                 keyname_list = list(classmembers[0].keys())
                 ids = [filteroptions.index(x) for x in keyname_list]
@@ -51,6 +57,9 @@ class JobManager:
                 header = sorted_keys
                 body = []
                 for row in classmembers:
+                    keyname_list = list(row.keys())
+                    ids = [filteroptions.index(x) for x in keyname_list]
+
                     row_values = row.values()
                     sorted_values = [line for (id, line) in sorted(zip(ids, row_values))]
                     body.append(sorted_values)
