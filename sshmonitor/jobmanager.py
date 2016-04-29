@@ -44,13 +44,14 @@ class JobManager:
         assert(isinstance(listdict, dict))
         log = logging.getLogger(__name__)
         updated_result = {}
+        errors = []
         for (classkey, classmembers) in listdict.items():
             if re.search('^error', classkey):
                 log.info('Skipping classkey {0}, because it matches the regex \'^error\''.format(classkey))
                 updated_result[classkey] = classmembers
                 continue
 
-            if len(classmembers) > 0:
+            if len(classmembers) >= 1 and isinstance(classmembers, list):
                 keyname_list = list(classmembers[0].keys())
                 ids = [filteroptions.index(x) for x in keyname_list]
                 sorted_keys = [line for (id, line) in sorted(zip(ids, keyname_list))]
@@ -65,7 +66,12 @@ class JobManager:
                     body.append(sorted_values)
                 updated_result[classkey] = dict(header=header, body=body)
             else:
+                log = logging.getLogger(__name__)
+                log.error(classmembers)
+                errors.append(classmembers)
+
                 updated_result[classkey] = dict(header=[], body=[])
+        updated_result['error'] = errors
         return updated_result
 
     def _load_class_from_xml(self, xmltree_root, option, filteroptions=None):
