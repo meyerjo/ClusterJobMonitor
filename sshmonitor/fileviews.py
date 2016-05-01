@@ -11,6 +11,7 @@ from models import DBSession
 from models.FileMonitorModels import MonitoredFile
 from ssh.sshfilebrowser import SSHFileBrowser
 from sshmonitor import SSHBasedJobManager
+from sshmonitor.filemonitor import FileMonitor
 
 
 class FileViews:
@@ -23,54 +24,55 @@ class FileViews:
     @view_config(route_name='filemonitor', renderer='json')
     def dummy(self):
         log = logging.getLogger(__name__)
-
+        files = FileMonitor(SSHFileBrowser(self._request.registry.settings['ssh_holder']))
+        for file in files.get_monitored_files():
+            print(file.id, file.filename)
+            print(file.__dict__)
+            print(dir(file))
         log.error('not yet implemented')
         return {'error': 'not yet implemented', 'project': 'Not yet implemented', 'content': ''}
 
     def _get_monitored_files(self, path):
-        res = DBSession.query(MonitoredFile.complete_filepath,
-                              MonitoredFile.filename,
-                              MonitoredFile.folder).filter(MonitoredFile.folder == path).all()
-        complete_filename = [r[0] for r in res]
-        filename = [r[1] for r in res]
-        folder = [r[2] for r in res]
+        files = FileMonitor(SSHFileBrowser(self._request.registry.settings['ssh_holder']))
+        res = files.get_monitored_files()
+        complete_filename = [r.complete_filepath for r in res]
+        filename = [r.filename for r in res]
+        folder = [r.folder for r in res]
         return complete_filename, filename, folder
 
-    @view_config(route_name='filemonitor_editor', renderer='templates/filemonitoring.pt')
+    @view_config(route_name='filemonitor_editor', renderer='templates/filemonitoring.pt', match_param=('modus=add', 'options=files'))
     def filemonitoring(self):
         log = logging.getLogger(__name__)
-        if self._request.matchdict['modus'] == 'add':
-            if self._request.matchdict['options'] == 'files':
-                if self._request.params is not []:
-                    # TODO: add this information to the file
-                    md5_enabled = True if 'withmd5' in self._request.params and self._request.params['withmd5'] == '0' else False
-                    all_files = self._request.params.getall('file')
+        if self._request.params:
+            # TODO: add this information to the file
+            md5_enabled = True if 'withmd5' in self._request.params and self._request.params['withmd5'] == '0' else False
+            all_files = self._request.params.getall('file')
 
-                    complete_file, filenames, folders = self._get_monitored_files(self._request.params['folder'] + '/')
+            complete_file, filenames, folders = self._get_monitored_files(self._request.params['folder'] + '/')
 
-                    with transaction.manager:
-                        for f in all_files:
-                            if f in complete_file:
-                                log.debug('Skipping file {0}, because it is already monitored'.format(f))
-                                continue
-                            (path, filename) = os.path.split(f)
-                            dbobj = MonitoredFile(path, filename, f)
-                            DBSession.add(dbobj)
-                        DBSession.commit()
-                    files_not_mentioned = [c for c in complete_file if c not in all_files]
-                    # TODO: decide on this
-                    log.info('TODO: Still have to decide whether files which are not selected should be deleted or not.'
-                             'Affected files would be: {0}'.format(files_not_mentioned))
-                else:
-                    log.info('Got an empty request, going to redirect to start page')
-                    subreq = Request.blank('/')
-                    return self._request.invoke_subrequest(subreq)
+            with transaction.manager:
+                for f in all_files:
+                    if f in complete_file:
+                        log.debug('Skipping file {0}, because it is already monitored'.format(f))
+                        continue
+                    (path, filename) = os.path.split(f)
+                    dbobj = MonitoredFile(path, filename, f)
+                    DBSession.add(dbobj)
+                DBSession.commit()
+            files_not_mentioned = [c for c in complete_file if c not in all_files]
+            # TODO: decide on this
+            log.info('TODO: Still have to decide whether files which are not selected should be deleted or not.'
+                     'Affected files would be: {0}'.format(files_not_mentioned))
+        else:
+            log.info('Got an empty request, going to redirect to start page')
+            subreq = Request.blank('/')
+            return self._request.invoke_subrequest(subreq)
 
-                subreq = Request.blank(self._request.route_path('filebrowser'),
-                                       POST=dict(folder=self._request.params['folder'],
-                                                 currentfolder=self._request.params['currentfolder'],
-                                                 pathdescription='abs'))
-                return self._request.invoke_subrequest(subreq)
+        subreq = Request.blank(self._request.route_path('filebrowser'),
+                               POST=dict(folder=self._request.params['folder'],
+                                         currentfolder=self._request.params['currentfolder'],
+                                         pathdescription='abs'))
+        return self._request.invoke_subrequest(subreq)
 
 
     @view_config(route_name='filebrowser', renderer='templates/filemonitoring.pt')
