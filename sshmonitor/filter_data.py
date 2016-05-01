@@ -54,6 +54,7 @@ def convert_list_of_dicts_to_list(list_of_dicts, filteroptions):
     errors = []
     for (classkey, classmembers) in list_of_dicts.items():
         import re
+        log = logging.getLogger(__name__)
         if re.search('^error', classkey):
             log.info('Skipping classkey {0}, because it matches the regex \'^error\''.format(classkey))
             updated_result[classkey] = classmembers
@@ -62,12 +63,11 @@ def convert_list_of_dicts_to_list(list_of_dicts, filteroptions):
         if len(classmembers) >= 1 and isinstance(classmembers, list):
             updated_result[classkey] = convert_list(classmembers)
         else:
-            log = logging.getLogger(__name__)
-            log.error(classmembers)
-            errors.append(classmembers)
+            if classmembers:
+                log.error(classmembers)
+                errors.append(classmembers)
 
             updated_result[classkey] = dict(header=[], body=[])
-    log.error(errors)
     if errors:
         updated_result['error'] = errors
     return updated_result
