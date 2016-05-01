@@ -9,6 +9,10 @@ class FileMonitor:
     def __init__(self, sshfilebrowser):
         self._sshfilebrowser = sshfilebrowser
 
+    def get_monitored_files(self):
+        all_monitored_files = DBSession.query(MonitoredFile).all()
+        return all_monitored_files
+
     def validate_files_in_place(self):
         allfiles = DBSession.query(MonitoredFile).all()
         log = logging.getLogger(__name__)

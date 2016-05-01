@@ -29,7 +29,6 @@ def main(global_config, **settings):
     else:
         raise BaseException('SSH Connection parameters file is not specified. See README')
 
-
     config = Configurator(settings=settings)
     config.scan('models') # the "important" line
     engine = engine_from_config(settings, 'sqlalchemy.')
@@ -39,6 +38,7 @@ def main(global_config, **settings):
     config.registry.settings['ssh_holder'] = SSHConnectionHolder(ssh_param)
 
     fm = FileMonitor(SSHFileBrowser(config.registry.settings['ssh_holder']))
+    print(fm.get_monitored_files())
     print(fm.validate_files_in_place())
 
     config.add_static_view('static', 'static', cache_max_age=3600)

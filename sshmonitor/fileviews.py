@@ -20,9 +20,12 @@ class FileViews:
         self._request = request
 
 
-    @view_config(route_name='filemonitor', renderer='templates/filemonitoring.pt')
-    def dummy(request):
-        return {'error': 'not yet implemented', 'project': 'Not yet implemented'}
+    @view_config(route_name='filemonitor', renderer='json')
+    def dummy(self):
+        log = logging.getLogger(__name__)
+
+        log.error('not yet implemented')
+        return {'error': 'not yet implemented', 'project': 'Not yet implemented', 'content': ''}
 
     def _get_monitored_files(self, path):
         res = DBSession.query(MonitoredFile.complete_filepath,
@@ -45,8 +48,6 @@ class FileViews:
 
                     complete_file, filenames, folders = self._get_monitored_files(self._request.params['folder'] + '/')
 
-                    log.info(complete_file)
-
                     with transaction.manager:
                         for f in all_files:
                             if f in complete_file:
@@ -57,6 +58,7 @@ class FileViews:
                             DBSession.add(dbobj)
                         DBSession.commit()
                     files_not_mentioned = [c for c in complete_file if c not in all_files]
+                    # TODO: decide on this
                     log.info('TODO: Still have to decide whether files which are not selected should be deleted or not.'
                              'Affected files would be: {0}'.format(files_not_mentioned))
                 else:

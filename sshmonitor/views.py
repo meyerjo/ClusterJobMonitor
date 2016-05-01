@@ -3,6 +3,7 @@ import logging
 import re
 
 import jsonpickle
+import transaction
 from pyramid.view import view_config
 
 from models import DBSession
@@ -13,29 +14,34 @@ class JobRequests():
 
     def __init__(self, request):
         self._request = request
-        self._projectname = 'ClusterManagement'
+        if 'title' in self._request.registry.settings:
+            self._projectname = self._request.registry.settings['title']
+        else:
+            self._projectname = 'ClusterManagement'
         self._coltitles = ['JobID', 'JobName', 'StartTime', 'SubmissionTime', 'CompletionTime', 'State', 'CompletionCode']
 
     def _write_jobinfo_to_db(self, jobs):
         log = logging.getLogger(__name__)
-        for (classname, classmembers) in jobs.items():
-            if len(classmembers) > 0:
-                for element in classmembers:
-                    if 'JobID' not in element:
-                        log.debug('Row didnt match specified criteria {0}'.format(element))
-                        continue
-                    if not re.search('[0-9]*', element['JobID']):
-                        log.debug('Row didnt match specified criteria {0}'.format(element))
-                        continue
-                    dbrow = DBSession.query(Job.id, Job.updatetime).filter(Job.id == element['JobID']).all()
-                    if len(dbrow) == 0:
-                        j = Job(element['JobID'], jsonpickle.encode(element))
-                        DBSession.add(j)
-                    elif len(dbrow) == 1:
-                        dbrow[0].jobinfo = jsonpickle.encode(element)
-                    else:
-                        log.error('More than one entry for jobid: {0}'.format(jsonpickle.encode(element)))
-        DBSession.commit()
+        with transaction.manager:
+            for (classname, classmembers) in jobs.items():
+                if len(classmembers) > 0:
+                    for element in classmembers:
+                        if 'JobID' not in element:
+                            log.debug('Row didnt match specified criteria {0}'.format(element))
+                            continue
+                        if not re.search('[0-9]*', element['JobID']):
+                            log.debug('Row didnt match specified criteria {0}'.format(element))
+                            continue
+                        dbrow = DBSession.query(Job.id, Job.updatetime).filter(Job.id == element['JobID']).all()
+                        json_str = jsonpickle.encode(element)
+                        if len(dbrow) == 0:
+                            j = Job(element['JobID'], json_str)
+                            DBSession.add(j)
+                        elif len(dbrow) == 1:
+                            dbrow[0].jobinfo = json_str
+                        else:
+                            log.error('More than one entry for jobid: {0}'.format(json_str))
+            DBSession.commit()
 
     def _get_current_jobs(self, jobmanager, coltitles):
         jobs = jobmanager.get_all_jobs()
@@ -46,6 +52,7 @@ class JobRequests():
             log.error(str(e))
         jobs = jobmanager.filter_from_dict(jobs, coltitles)
         jobs = jobmanager.convert_from_listdict_to_list(jobs, coltitles)
+        jobs['joborder'] = ['eligible', 'active', 'blocked', 'completed']
         return jobs
 
     @view_config(route_name='jobs', renderer='templates/jobs.pt')

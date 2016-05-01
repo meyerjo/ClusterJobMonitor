@@ -45,16 +45,18 @@ class SSHConnectionHolder:
             return dict(error=str(e), content=None)
 
     def connection_alive(self):
+        log = logging.getLogger(__name__)
         if self.ssh is None:
             return False
         try:
             x = self.ssh.get_transport().is_active()
             return True
         except BaseException as e:
+            log.error('Connection alive: {0}'.format(str(e)))
             return False
 
-
     def send_command(self, command):
+        log = logging.getLogger(__name__)
         if self.ssh is None:
             return dict(error='No ssh connection')
         if not self.connection_alive():
@@ -74,12 +76,10 @@ class SSHConnectionHolder:
             return dict(error=None, stdin=stdin, stdout=stdout,
                         stderr=stderr, stdoutstr=lines, errordetails=None)
         except socket.error as e:
-            log = logging.getLogger(__name__)
             log.error('Connection error with paramiko ssh client: {0}'.format(str(e)))
             return dict(error=str(e), errordetails=None)
         except BaseException as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
-            log = logging.getLogger(__name__)
             log.error(str(e))
             # reset connection once it is not alive anymore
             return dict(error=str(e), errordetails=exc_tb.tb_lineno)

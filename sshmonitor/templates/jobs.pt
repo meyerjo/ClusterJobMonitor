@@ -45,7 +45,16 @@
     </div>
 </nav>
 <div class="container">
-    <div class="row" tal:repeat="(jobclass, jobelements) jobs.items()">
+    <tal:block tal:switch="python:isinstance(jobs, dict) and 'joborder' in jobs">
+        <tal:block tal:case="True">
+            <tal:block tal:define="global joborder jobs['joborder']"></tal:block>
+        </tal:block>
+        <tal:block tal:case="False">
+            <tal:block tal:define="global joborder jobs.keys()"></tal:block>
+        </tal:block>
+    </tal:block>
+    <div class="row" tal:repeat="orderelement joborder">
+        <tal:block tal:define="global jobclass orderelement; global jobelements jobs[orderelement]"></tal:block>
         <h1>${jobclass} (<span tal:content="len(jobelements['body']) if 'body' in jobelements else 0"></span>) </h1>
         <table tal:condition="python: len(jobelements) >= 1 and ('header' in jobelements)" class="table table-responsive table-bordered table-striped">
             <tr>
