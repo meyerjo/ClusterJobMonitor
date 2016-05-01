@@ -9,12 +9,6 @@ from models import DBSession
 from models.Job import Job, JobOutput
 from sshmonitor import SSHBasedJobManager
 
-
-@view_config(route_name='home', renderer='templates/mytemplate.pt')
-def my_view(request):
-    return {'project': 'SSHMonitor'}
-
-
 class JobRequests():
 
     def __init__(self, request):
