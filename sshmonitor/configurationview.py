@@ -14,10 +14,18 @@ class ConfigurationView:
 
     @view_config(route_name='sshconfiguration', renderer='templates/configurationeditor.pt', request_method='GET')
     def ssh_config(self):
-        return dict(project='Test')
+        if 'projectname' in self._request.registry.settings:
+            projectname = self._request.registry.settings['projectname']
+        else:
+            projectname = 'ClusterManagement'
+        return dict(project=projectname)
 
     @view_config(route_name='sshconfiguration', renderer='templates/configurationeditor.pt', request_method='POST')
     def ssh_configuration_view(self):
+        if 'projectname' in self._request.registry.settings:
+            projectname = self._request.registry.settings['projectname']
+        else:
+            projectname = 'ClusterManagement'
         if (self._request.params.get('password') != self._request.params.get('password_repeat')):
             return dict(error='Passwords do not correspond', project=self._projectname)
         if self._request.params.get('servername') is '':
@@ -47,8 +55,8 @@ class ConfigurationView:
         elif self._request.params.get('submit_button') == 'test':
             testresult = SSHTest.test(obj)
             if 'error' in testresult and testresult['error'] is not None:
-                return dict(project=self._projectname, error=testresult['error'])
+                return dict(project=projectname, error=testresult['error'])
         else:
-            return dict(project=self._projectname, error='Unknown submit button')
+            return dict(project=projectname, error='Unknown submit button')
 
-        return dict(project=self._projectname, error=None)
+        return dict(project=projectname, error=None)

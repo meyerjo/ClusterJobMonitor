@@ -74,6 +74,8 @@ class FileViews:
     @view_config(route_name='filebrowser', renderer='templates/filemonitoring.pt')
     def browse_files(self):
         log = logging.getLogger(__name__)
+        if 'ssh_holder' not in self._request.registry.settings:
+            return dict(project='FileBrowser', content=[])
         ssh_holder = self._request.registry.settings['ssh_holder']
         ssh_jobmanager = SSHFileBrowser(ssh_holder)
         folder = self._request.params['folder'] if 'folder' in self._request.params else '.'
