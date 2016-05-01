@@ -59,7 +59,22 @@
 </nav>
 <div class="container">
     <div class="row">
-        <h1>TODO: add a gui to show the filemonitoring</h1>
+        <table class="table table-hovered table-responsive table-striped">
+            <tal:block tal:repeat="(folder, files) grouped_files.items()">
+                <tal:block tal:condition="python:len(files)>0 and isinstance(files[0], dict)">
+                    <tal:block tal:define="global keys files[0].keys()"></tal:block>
+                    <tr>
+                        <th tal:content="folder" tal:attributes="colspan len(keys)"></th>
+                    </tr>
+                    <tr><th tal:repeat="key item_order"><span tal:content="key"></span></th></tr>
+                    <tr tal:repeat="file files">
+                        <td tal:repeat="key item_order">
+                            ${file[key]}
+                        </td>
+                    </tr>
+                </tal:block>
+            </tal:block>
+        </table>
     </div>
 </div>
 </body>

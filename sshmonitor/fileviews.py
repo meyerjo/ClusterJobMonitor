@@ -21,16 +21,26 @@ class FileViews:
         self._request = request
 
 
-    @view_config(route_name='filemonitor', renderer='json')
+    @view_config(route_name='filemonitor', renderer='templates/filemonitoring_overview.pt')
     def dummy(self):
         log = logging.getLogger(__name__)
         files = FileMonitor(SSHFileBrowser(self._request.registry.settings['ssh_holder']))
-        for file in files.get_monitored_files():
-            print(file.id, file.filename)
-            print(file.__dict__)
-            print(dir(file))
+
+        def group_files_by_dictionary(input):
+            grouped_by_dict = dict()
+            for file in input:
+                if file['folder'] in grouped_by_dict:
+                    grouped_by_dict[file['folder']].append(file)
+                else:
+                    grouped_by_dict[file['folder']] = [file]
+            return grouped_by_dict
+
+        monitored_files = files.get_monitored_files()
+        grouped_files = group_files_by_dictionary(monitored_files)
+        item_order = ['id', 'folder', 'filename', 'createtime']
         log.error('not yet implemented')
-        return {'error': 'not yet implemented', 'project': 'Not yet implemented', 'content': ''}
+        return {'error': 'not yet implemented', 'project': 'Not yet implemented',
+                'grouped_files': grouped_files, 'item_order': item_order}
 
     def _get_monitored_files(self, path):
         files = FileMonitor(SSHFileBrowser(self._request.registry.settings['ssh_holder']))

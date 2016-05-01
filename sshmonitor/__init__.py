@@ -35,6 +35,7 @@ def main(global_config, **settings):
     initialize_sql(engine)
 
     config.include('pyramid_chameleon')
+    config.include('pyramid_scheduler')
     config.registry.settings['ssh_holder'] = SSHConnectionHolder(ssh_param)
 
     fm = FileMonitor(SSHFileBrowser(config.registry.settings['ssh_holder']))

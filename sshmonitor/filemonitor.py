@@ -11,7 +11,19 @@ class FileMonitor:
 
     def get_monitored_files(self):
         all_monitored_files = DBSession.query(MonitoredFile).all()
+
+        for i, file in enumerate(all_monitored_files):
+            all_monitored_files[i] = file.__dict__
+
+            delete_keys = [key if key.startswith('_') else None for key in all_monitored_files[i].keys()]
+            for key in delete_keys:
+                if not key:
+                    continue
+                del all_monitored_files[i][key]
         return all_monitored_files
+
+    def call_periodically(self, reason=None):
+        print('test')
 
     def validate_files_in_place(self):
         allfiles = DBSession.query(MonitoredFile).all()
