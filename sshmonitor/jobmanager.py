@@ -5,30 +5,13 @@ import re
 
 import datetime
 
+from sshmonitor.filter_data import filter_elements_from_dict, convert_list_of_dicts_to_list
+
 
 class JobManager:
 
     def filter_from_dict(self, input_dict, filteroptions=None):
-        assert(isinstance(input_dict, dict))
-        if filteroptions is None:
-            return input_dict
-        assert(isinstance(filteroptions, list))
-        for (key, val) in input_dict.items():
-            if val is []:
-                continue
-            for i, r in enumerate(val):
-                if not isinstance(r, dict):
-                    log = logging.getLogger(__name__)
-                    log.warning('Element is not a dict and it should be one')
-                    log.warning(val)
-                    continue
-                available_keys = r.keys()
-                keys_to_delete = [x for x in available_keys if x not in filteroptions]
-                if r is None:
-                    continue
-                for f in keys_to_delete:
-                    del input_dict[key][i][f]
-        return input_dict
+        return filter_elements_from_dict(input_dict, filteroptions)
 
     def _preprocess_data(self, input_dict):
         assert(isinstance(input_dict, dict))
@@ -41,38 +24,7 @@ class JobManager:
         return input_dict
 
     def convert_from_listdict_to_list(self, listdict, filteroptions):
-        assert(isinstance(listdict, dict))
-        log = logging.getLogger(__name__)
-        updated_result = {}
-        errors = []
-        for (classkey, classmembers) in listdict.items():
-            if re.search('^error', classkey):
-                log.info('Skipping classkey {0}, because it matches the regex \'^error\''.format(classkey))
-                updated_result[classkey] = classmembers
-                continue
-
-            if len(classmembers) >= 1 and isinstance(classmembers, list):
-                keyname_list = list(classmembers[0].keys())
-                ids = [filteroptions.index(x) for x in keyname_list]
-                sorted_keys = [line for (id, line) in sorted(zip(ids, keyname_list))]
-                header = sorted_keys
-                body = []
-                for row in classmembers:
-                    keyname_list = list(row.keys())
-                    ids = [filteroptions.index(x) for x in keyname_list]
-
-                    row_values = row.values()
-                    sorted_values = [line for (id, line) in sorted(zip(ids, row_values))]
-                    body.append(sorted_values)
-                updated_result[classkey] = dict(header=header, body=body)
-            else:
-                log = logging.getLogger(__name__)
-                log.error(classmembers)
-                errors.append(classmembers)
-
-                updated_result[classkey] = dict(header=[], body=[])
-        updated_result['error'] = errors
-        return updated_result
+        return convert_list_of_dicts_to_list(listdict, filteroptions)
 
     def _load_class_from_xml(self, xmltree_root, option, filteroptions=None):
         ret = []

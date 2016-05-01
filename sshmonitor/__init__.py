@@ -7,6 +7,8 @@ from sqlalchemy import engine_from_config
 
 from models import initialize_sql
 from ssh.ssh_connectionholder import SSHConnectionHolder
+from ssh.sshfilebrowser import SSHFileBrowser
+from sshmonitor.filemonitor import FileMonitor
 from sshmonitor.jobmanager import JobManager
 from sshmonitor.sshbasedjobmanager import SSHBasedJobManager
 
@@ -35,6 +37,10 @@ def main(global_config, **settings):
 
     config.include('pyramid_chameleon')
     config.registry.settings['ssh_holder'] = SSHConnectionHolder(ssh_param)
+
+    fm = FileMonitor(SSHFileBrowser(config.registry.settings['ssh_holder']))
+    print(fm.validate_files_in_place())
+
     config.add_static_view('static', 'static', cache_max_age=3600)
     config.add_route('home', '/home')
     config.add_route('job_details', '/jobdetails/{jobid}')
