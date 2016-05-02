@@ -112,15 +112,16 @@ class JobSubmitStatement():
     def _get_variables(self):
         variables = ['']
         log = logging.getLogger(__name__)
-        if self._config['scriptvariables'] != '':
+        if self._config['scriptvariables'] is not None and  self._config['scriptvariables'] != '':
             variables = []
             scriptvariables = self._config['scriptvariables']
             if os.path.exists(scriptvariables):
-                log.debug('Scriptvariables is an filename. Going through linewise.')
+                log.debug('Scriptvariables is a filename. Going through linewise.')
                 variables = self._variablefile_to_variables(scriptvariables)
             else:
-                log.debug('Detected that the scriptvariables option is not a file. Interpreting it as a json string.')
+                log.debug('Scriptvariables option is not a file. Interpreting it as a json string, which represents an array.')
                 if self._json_parseable(scriptvariables):
+                    varlist = None
                     try:
                         import json
                         varlist = json.loads(scriptvariables)
