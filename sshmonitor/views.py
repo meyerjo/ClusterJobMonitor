@@ -32,12 +32,13 @@ class JobRequests():
                         if not re.search('[0-9]*', element['JobID']):
                             log.debug('Row didnt match specified criteria {0}'.format(element))
                             continue
-                        dbrow = DBSession.query(Job.id, Job.updatetime).filter(Job.id == element['JobID']).all()
+                        dbrow = DBSession.query(Job).filter(Job.id == element['JobID']).all()
                         json_str = jsonpickle.encode(element)
                         if len(dbrow) == 0:
                             j = Job(element['JobID'], json_str)
                             DBSession.add(j)
                         elif len(dbrow) == 1:
+                            log.error(dbrow)
                             dbrow[0].jobinfo = json_str
                         else:
                             log.error('More than one entry for jobid: {0}'.format(json_str))
@@ -49,6 +50,7 @@ class JobRequests():
         try:
             self._write_jobinfo_to_db(jobs)
         except BaseException as e:
+            log.error(jobs)
             log.error(str(e))
         jobs = jobmanager.filter_from_dict(jobs, coltitles)
         jobs = jobmanager.convert_from_listdict_to_list(jobs, coltitles)
