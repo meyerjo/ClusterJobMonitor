@@ -51,11 +51,20 @@ class JobDatabaseWrapper:
             DBSession.commit()
 
     def job_archive(self):
-        jobs_stmt = DBSession.query(Job).all()
+        jobs_stmt = DBSession.query(Job).order_by(Job.updatetime.desc()).all()
         jobs_dict = []
         for jobs in jobs_stmt:
             job_outputs = DBSession.query(JobOutput).filter(JobOutput.jobid == jobs.id).all()
             jobs = jobs.__dict__
+
+            if 'jobinfo' in jobs and jobs['jobinfo'] is not None:
+                obj = jsonpickle.decode(jobs['jobinfo'])
+                jobs.update(obj)
+
+            if 'jobdetails' in jobs and jobs['jobdetails'] is not None:
+                obj = jsonpickle.decode(jobs['jobdetails'])
+                jobs.update(obj)
+
             jobs['number_of_joboutputs'] = len(job_outputs)
             jobs['joboutputs'] = []
             for outputs in job_outputs:

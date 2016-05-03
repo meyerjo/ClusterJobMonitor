@@ -101,3 +101,18 @@ class JobRequests():
         return {'project': self._projectname,
                 'jobs': jobs,
                 'output': dict(jobid=jobid, output=jobresult, type=joboutput['type'])}
+
+    @view_config(route_name='jobarchive', renderer='templates/jobarchive.pt')
+    def job_archive(self):
+        return {'project': self._projectname, 'jobarchive': JobDatabaseWrapper().job_archive()}
+
+    @view_config(route_name='jobarchive_config', renderer='templates/jobarchive_config.pt')
+    def job_archive_config(self):
+        # get the row with the most keys
+        jobarchive = JobDatabaseWrapper().job_archive()
+        max_keys = []
+        for job in jobarchive:
+            if len(job.keys()) > len(max_keys):
+                max_keys = job.keys()
+
+        return {'project': self._projectname, 'keys': max_keys}
