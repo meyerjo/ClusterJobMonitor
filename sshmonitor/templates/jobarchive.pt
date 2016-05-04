@@ -10,6 +10,9 @@
 
     <title>Starter Scaffold for The Pyramid Web Framework</title>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/js/bootstrap.min.js"></script>
+
     <!-- Bootstrap core CSS -->
     <link href="//oss.maxcdn.com/libs/twitter-bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
@@ -19,6 +22,11 @@
     <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
     <script src="//oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
     <![endif]-->
+    <script>
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+    </script>
 </head>
 
 <body>
@@ -46,21 +54,22 @@
 </nav>
 <div class="container-fluid">
     <div class="row-fluid">
-    <table class="table table-striped table-hovered table-responsive">
-        <tr tal:repeat="job jobarchive">
-            <td tal:repeat="key ['id', 'JobName', 'SubmissionTime', 'StartTime', 'SubmissionTime', 'jobdetails', 'number_of_joboutputs', 'updatetime']">
+        <table class="table table-striped table-hovered table-responsive">
+            <tr tal:repeat="job jobarchive">
+                <td tal:repeat="key visible_keys">
                 <span tal:switch="python: key in job">
                     <span tal:case="True">
-                        ${job[key]}
+                            ${job[key]}
                     </span>
                     <span tal:case="False">
-                        ${key} not in ${job.keys()}
+                        <button type="button" class="btn btn-default" data-toggle="tooltip"
+                                data-placement="bottom" title="${key} not in ${job.keys()}${key} not in ${job.keys()}">n.a.</button>
                     </span>
                 </span>
-            </td>
-        </tr>
-    </table>
-        </div>
+                </td>
+            </tr>
+        </table>
+    </div>
 </div>
 </body>
 </html>

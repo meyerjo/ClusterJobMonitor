@@ -103,27 +103,33 @@ class JobRequests():
                 'jobs': jobs,
                 'output': dict(jobid=jobid, output=jobresult, type=joboutput['type'])}
 
+    def get_most_keys(self):
+        jobarchive = JobDatabaseWrapper().job_archive()
+        max_keys = []
+        examples = []
+        for job in jobarchive:
+            if len(job.keys()) > len(max_keys):
+                max_keys = job.keys()
+                examples = job
+        return max_keys, examples
+
     @view_config(route_name='jobarchive', renderer='templates/jobarchive.pt')
     def job_archive(self):
-        return {'project': self._projectname, 'jobarchive': JobDatabaseWrapper().job_archive()}
+        jobarchive_config = JobDatabaseWrapper().job_archive_config()
+        jobarchive_config = jsonpickle.decode(jobarchive_config[1])
+        all_available_keys, examples = self.get_most_keys()
+        if jobarchive_config is None:
+            keys = all_available_keys
+        else:
+            keys = jobarchive_config
+        return {'project': self._projectname, 'jobarchive': JobDatabaseWrapper().job_archive(), 'visible_keys': keys}
 
     @view_config(route_name='jobarchive_config', renderer='templates/jobarchive_config.pt')
     def job_archive_config(self):
         # get the row with the most keys
-        def get_most_keys():
-            jobarchive = JobDatabaseWrapper().job_archive()
-            max_keys = []
-            examples = []
-            for job in jobarchive:
-                if len(job.keys()) > len(max_keys):
-                    max_keys = job.keys()
-                    examples = job.items()
-            return max_keys, examples
-
         jobarchive_config = JobDatabaseWrapper().job_archive_config()
-        print(jobarchive_config)
         jobarchive_config = jsonpickle.decode(jobarchive_config[1])
-        all_available_keys, examples = get_most_keys()
+        all_available_keys, examples = self.get_most_keys()
         if jobarchive_config is None:
             keys = [(key, True) for key in all_available_keys]
         else:
@@ -131,7 +137,7 @@ class JobRequests():
             for key in all_available_keys:
                 if key not in jobarchive_config:
                     not_activated_keys.append((key, False))
-            keys = [(key, True) for key in all_available_keys]
+            keys = [(key, True) for key in jobarchive_config]
             keys = keys + not_activated_keys
 
         return {'project': self._projectname, 'keys': keys, 'examples': examples}
