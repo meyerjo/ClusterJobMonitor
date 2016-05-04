@@ -4,6 +4,7 @@ import re
 
 import jsonpickle
 import transaction
+from pyramid.request import Request
 from pyramid.view import view_config
 
 from models import DBSession
@@ -109,10 +110,43 @@ class JobRequests():
     @view_config(route_name='jobarchive_config', renderer='templates/jobarchive_config.pt')
     def job_archive_config(self):
         # get the row with the most keys
-        jobarchive = JobDatabaseWrapper().job_archive()
-        max_keys = []
-        for job in jobarchive:
-            if len(job.keys()) > len(max_keys):
-                max_keys = job.keys()
+        def get_most_keys():
+            jobarchive = JobDatabaseWrapper().job_archive()
+            max_keys = []
+            examples = []
+            for job in jobarchive:
+                if len(job.keys()) > len(max_keys):
+                    max_keys = job.keys()
+                    examples = job.items()
+            return max_keys, examples
 
-        return {'project': self._projectname, 'keys': max_keys}
+        jobarchive_config = JobDatabaseWrapper().job_archive_config()
+        print(jobarchive_config)
+        jobarchive_config = jsonpickle.decode(jobarchive_config[1])
+        all_available_keys, examples = get_most_keys()
+        if jobarchive_config is None:
+            keys = [(key, True) for key in all_available_keys]
+        else:
+            not_activated_keys = []
+            for key in all_available_keys:
+                if key not in jobarchive_config:
+                    not_activated_keys.append((key, False))
+            keys = [(key, True) for key in all_available_keys]
+            keys = keys + not_activated_keys
+
+        return {'project': self._projectname, 'keys': keys, 'examples': examples}
+
+
+    @view_config(route_name='jobarchive_config', renderer='json', request_method='POST')
+    def test(self):
+        post_list = self._request.POST
+        post_dict = post_list.__dict__
+        post_list = post_dict['_items']
+        keys = []
+        for key in post_list:
+            if key[0] == 'checkbox':
+                keys.append(key[1])
+
+        JobDatabaseWrapper().write_job_archive_config(keys)
+        subreq = Request.blank(self._request.route_path('jobarchive_config'))
+        return self._request.invoke_subrequest(subreq)

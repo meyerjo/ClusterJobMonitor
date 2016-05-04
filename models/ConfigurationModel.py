@@ -1,4 +1,6 @@
 import datetime
+
+import jsonpickle
 from sqlalchemy import DateTime, Column, Integer, String, ForeignKey, Boolean
 
 from models import Base
@@ -13,6 +15,8 @@ class ArchiveUserConfiguration(Base):
     user = Column(Integer, nullable=True)
     createtime = Column(DateTime, default=datetime.datetime.utcnow(), nullable=True)
 
-    def __init__(self, config_id, columns_json):
-        self.configuration_id = config_id
+    def __init__(self, columns_json):
+        if isinstance(columns_json, list):
+            columns_json = jsonpickle.encode(columns_json)
+
         self.columns_json = columns_json

@@ -5,6 +5,7 @@ import jsonpickle
 import transaction
 
 from models import DBSession
+from models.ConfigurationModel import ArchiveUserConfiguration
 from models.Job import Job, JobOutput
 
 
@@ -71,3 +72,15 @@ class JobDatabaseWrapper:
                 jobs['joboutputs'].append(outputs.__dict__)
             jobs_dict.append(jobs)
         return jobs_dict
+
+    def job_archive_config(self):
+        jobconfig = DBSession.query(ArchiveUserConfiguration.configuration_id,
+                                    ArchiveUserConfiguration.columns_json,
+                                    ArchiveUserConfiguration.createtime).order_by(ArchiveUserConfiguration.configuration_id.desc()).first()
+        return jobconfig
+
+
+    def write_job_archive_config(self, configuration):
+        with transaction.manager:
+            DBSession.add(ArchiveUserConfiguration(jsonpickle.encode(configuration)))
+            DBSession.commit()

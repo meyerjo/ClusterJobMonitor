@@ -46,13 +46,19 @@
 </nav>
 <div class="container">
     <div class="row-fluid">
-        <ul id="simpleList" class="list-group">
-            <li class="list-group-item">This is <a href="http://rubaxa.github.io/Sortable/">Sortable</a></li>
-            <li class="list-group-item">It works with Bootstrap...</li>
-            <li class="list-group-item">...out of the box.</li>
-            <li class="list-group-item">It has support for touch devices.</li>
-            <li class="list-group-item">Just drag some elements around.</li>
-        </ul>
+        <form method="POST">
+            <button type="submit" class="btn btn-default">Save configuration</button>
+            <ul id="simpleList" class="list-group">
+                <li class="list-group-item" tal:repeat="key keys">
+                    <label>
+                        <tal:block tal:switch="key[1]">
+                            <input tal:case="True" type="checkbox" name="checkbox" tal:attributes="value key[0]" checked>
+                            <input tal:case="False" type="checkbox" name="checkbox" tal:attributes="value key[0]">
+                        </tal:block>
+                        ${key[0]}</label>
+                </li>
+            </ul>
+        </form>
     </div>
 </div>
 <!-- Latest Sortable -->
