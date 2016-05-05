@@ -46,6 +46,9 @@ def main(global_config, **settings):
     config.add_route('job_details', '/jobdetails/{jobid}')
     config.add_route('cancel_job', '/canceljob/{jobid}')
     config.add_route('joboutput', '/joboutput/{jobid}')
+    config.add_route('jobarchive', '/archive')
+    config.add_route('jobarchive_config', '/archive/config')
+
 
     config.add_route('filemonitor', '/filemonitor')
     config.add_route('filemonitor_editor', '/filemonitor/{modus}/{options}')

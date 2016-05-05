@@ -53,6 +53,13 @@
             <tal:block tal:define="global joborder jobs.keys()"></tal:block>
         </tal:block>
     </tal:block>
+    <tal:block tal:condition="python: 'error' in jobs">
+        <div class="row">
+            <div class="alert alert-danger" role="alert">
+                <span tal:content="jobs['error']"></span>
+            </div>
+        </div>
+    </tal:block>
     <div class="row" tal:repeat="orderelement joborder">
         <tal:block tal:define="global jobclass orderelement; global jobelements jobs[orderelement]"></tal:block>
         <h1>${jobclass} (<span tal:content="len(jobelements['body']) if 'body' in jobelements else 0"></span>) </h1>

@@ -4,11 +4,14 @@ import re
 
 import jsonpickle
 import transaction
+from pyramid.request import Request
 from pyramid.view import view_config
 
 from models import DBSession
 from models.Job import Job, JobOutput
 from sshmonitor import SSHBasedJobManager
+from sshmonitor.job_database_wrapper import JobDatabaseWrapper
+
 
 class JobRequests():
 
@@ -20,46 +23,21 @@ class JobRequests():
             self._projectname = 'ClusterManagement'
         self._coltitles = ['JobID', 'JobName', 'StartTime', 'SubmissionTime', 'CompletionTime', 'State', 'CompletionCode']
 
-    def _write_jobinfo_to_db(self, jobs):
-        log = logging.getLogger(__name__)
-        with transaction.manager:
-            for (classname, classmembers) in jobs.items():
-                if len(classmembers) > 0:
-                    for element in classmembers:
-                        if 'JobID' not in element:
-                            log.debug('Row didnt match specified criteria {0}'.format(element))
-                            continue
-                        if not re.search('[0-9]*', element['JobID']):
-                            log.debug('Row didnt match specified criteria {0}'.format(element))
-                            continue
-                        dbrow = DBSession.query(Job.id, Job.updatetime).filter(Job.id == element['JobID']).all()
-                        json_str = jsonpickle.encode(element)
-                        if len(dbrow) == 0:
-                            j = Job(element['JobID'], json_str)
-                            DBSession.add(j)
-                        elif len(dbrow) == 1:
-                            dbrow[0].jobinfo = json_str
-                        else:
-                            log.error('More than one entry for jobid: {0}'.format(json_str))
-            DBSession.commit()
-
     def _get_current_jobs(self, jobmanager, coltitles):
-        jobs = jobmanager.get_all_jobs()
-        log = logging.getLogger(__name__)
-        try:
-            self._write_jobinfo_to_db(jobs)
-        except BaseException as e:
-            log.error(str(e))
-        jobs = jobmanager.filter_from_dict(jobs, coltitles)
-        jobs = jobmanager.convert_from_listdict_to_list(jobs, coltitles)
-        jobs['joborder'] = ['eligible', 'active', 'blocked', 'completed']
-        return jobs
+        return JobDatabaseWrapper.get_jobs(jobmanager, coltitles)
 
     @view_config(route_name='jobs', renderer='templates/jobs.pt')
     def all_jobs(self):
         ssh_holder = self._request.registry.settings['ssh_holder']
         ssh_jobmanager = SSHBasedJobManager(ssh_holder)
         jobs = self._get_current_jobs(ssh_jobmanager, self._coltitles)
+
+        log = logging.getLogger(__name__)
+        try:
+            JobDatabaseWrapper().job_archive()
+        except BaseException as e:
+            log.error(str(e))
+
         return {'project': self._projectname,
                 'jobs': jobs}
 
@@ -124,3 +102,57 @@ class JobRequests():
         return {'project': self._projectname,
                 'jobs': jobs,
                 'output': dict(jobid=jobid, output=jobresult, type=joboutput['type'])}
+
+    def get_most_keys(self):
+        jobarchive = JobDatabaseWrapper().job_archive()
+        max_keys = []
+        examples = []
+        for job in jobarchive:
+            if len(job.keys()) > len(max_keys):
+                max_keys = job.keys()
+                examples = job
+        return max_keys, examples
+
+    @view_config(route_name='jobarchive', renderer='templates/jobarchive.pt')
+    def job_archive(self):
+        jobarchive_config = JobDatabaseWrapper().job_archive_config()
+        jobarchive_config = jsonpickle.decode(jobarchive_config[1])
+        all_available_keys, examples = self.get_most_keys()
+        if jobarchive_config is None:
+            keys = all_available_keys
+        else:
+            keys = jobarchive_config
+        return {'project': self._projectname, 'jobarchive': JobDatabaseWrapper().job_archive(), 'visible_keys': keys}
+
+    @view_config(route_name='jobarchive_config', renderer='templates/jobarchive_config.pt')
+    def job_archive_config(self):
+        # get the row with the most keys
+        jobarchive_config = JobDatabaseWrapper().job_archive_config()
+        jobarchive_config = jsonpickle.decode(jobarchive_config[1])
+        all_available_keys, examples = self.get_most_keys()
+        if jobarchive_config is None:
+            keys = [(key, True) for key in all_available_keys]
+        else:
+            not_activated_keys = []
+            for key in all_available_keys:
+                if key not in jobarchive_config:
+                    not_activated_keys.append((key, False))
+            keys = [(key, True) for key in jobarchive_config]
+            keys = keys + not_activated_keys
+
+        return {'project': self._projectname, 'keys': keys, 'examples': examples}
+
+
+    @view_config(route_name='jobarchive_config', renderer='json', request_method='POST')
+    def test(self):
+        post_list = self._request.POST
+        post_dict = post_list.__dict__
+        post_list = post_dict['_items']
+        keys = []
+        for key in post_list:
+            if key[0] == 'checkbox':
+                keys.append(key[1])
+
+        JobDatabaseWrapper().write_job_archive_config(keys)
+        subreq = Request.blank(self._request.route_path('jobarchive_config'))
+        return self._request.invoke_subrequest(subreq)
