@@ -127,6 +127,7 @@
                 </span>
         </table>
     </div>
+    <a tal:attributes="href request.route_url('jobarchive')" class="btn btn-link">Archive</a>
 </div>
 </body>
 </html>

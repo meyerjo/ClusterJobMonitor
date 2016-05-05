@@ -116,11 +116,11 @@ class JobRequests():
     @view_config(route_name='jobarchive', renderer='templates/jobarchive.pt')
     def job_archive(self):
         jobarchive_config = JobDatabaseWrapper().job_archive_config()
-        jobarchive_config = jsonpickle.decode(jobarchive_config[1])
         all_available_keys, examples = self.get_most_keys()
         if jobarchive_config is None:
             keys = all_available_keys
         else:
+            jobarchive_config = jsonpickle.decode(jobarchive_config[1])
             keys = jobarchive_config
         return {'project': self._projectname, 'jobarchive': JobDatabaseWrapper().job_archive(), 'visible_keys': keys}
 
@@ -128,11 +128,11 @@ class JobRequests():
     def job_archive_config(self):
         # get the row with the most keys
         jobarchive_config = JobDatabaseWrapper().job_archive_config()
-        jobarchive_config = jsonpickle.decode(jobarchive_config[1])
         all_available_keys, examples = self.get_most_keys()
         if jobarchive_config is None:
             keys = [(key, True) for key in all_available_keys]
         else:
+            jobarchive_config = jsonpickle.decode(jobarchive_config[1])
             not_activated_keys = []
             for key in all_available_keys:
                 if key not in jobarchive_config:

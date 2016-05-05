@@ -27,6 +27,11 @@
             $('[data-toggle="tooltip"]').tooltip()
         })
     </script>
+    <style>
+        thead, tbody {
+            display: block;
+        }
+    </style>
 </head>
 
 <body>
@@ -49,12 +54,18 @@
                 <li><a href="/browser">FileBrowser</a></li>
                 <li><a href="/sshconfiguration">SSHConfiguration</a></li>
             </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a tal:attributes="href request.route_url('jobarchive_config')">Jobarchive-Config</a></li>
+            </ul>
         </div>
     </div>
 </nav>
 <div class="container-fluid">
     <div class="row-fluid">
         <table class="table table-striped table-hovered table-responsive">
+            <tr>
+                <th tal:repeat="key visible_keys"><span tal:content="key"></span></th>
+            </tr>
             <tr tal:repeat="job jobarchive">
                 <td tal:repeat="key visible_keys">
                 <span tal:switch="python: key in job">
@@ -63,7 +74,7 @@
                     </span>
                     <span tal:case="False">
                         <button type="button" class="btn btn-default" data-toggle="tooltip"
-                                data-placement="bottom" title="${key} not in ${job.keys()}${key} not in ${job.keys()}">n.a.</button>
+                                data-placement="bottom" title="${key} not in ${job.keys()}">n.a.</button>
                     </span>
                 </span>
                 </td>
