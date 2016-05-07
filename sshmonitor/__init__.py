@@ -48,6 +48,7 @@ def main(global_config, **settings):
     config.add_route('jobarchive', '/archive')
     config.add_route('jobarchive_config', '/archive/config')
 
+    config.add_route('dashboard', '/dashboard')
 
     config.add_route('filemonitor', '/filemonitor')
     config.add_route('filemonitor_editor', '/filemonitor/{modus}/{options}')
