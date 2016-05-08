@@ -57,10 +57,6 @@ def write_interactive_job_script(ssh_connection, scriptname):
     if stdout == '':
         log.error('Apparently there was an error writing the script to the server going to stop')
         exit(2)
-    if stdout.strip() != '{0}'.format(shell_script.strip()):
-        log.error('Writing doesn''t yield the expected result')
-        log.error('Written content:\n{0}'.format(stdout.strip()))
-        exit(2)
 
 
 def generate_job_request(ssh_connection, resources):
