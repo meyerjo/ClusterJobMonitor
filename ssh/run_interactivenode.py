@@ -43,7 +43,7 @@ def write_interactive_job_script(ssh_connection, scriptname):
     log = logging.getLogger(__name__)
     shell_script = ('#!/bin/bash\n'
                     'module load vis/tigervnc/1.1.0\n'
-                    'run_vncserver > echo ~/vnc_param_${{MOAB_JOBID}}.out\n'
+                    'run_vncserver > $(echo ~/vnc_param_${{MOAB_JOBID}}.out)\n'
                     'while :\n'
                     'do\n'
                     'echo "Run loop forever"\n'
