@@ -17,6 +17,29 @@
     <link href="//oss.maxcdn.com/libs/twitter-bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
 
+
+    <!-- MetisMenu CSS -->
+    <link href="${request.static_url('sshmonitor:static/bower_components/metisMenu/dist/metisMenu.min.css')}" rel="stylesheet">
+
+    <!-- Timeline CSS -->
+    <link href="${request.static_url('sshmonitor:static/dist/css/timeline.css')}" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="${request.static_url('sshmonitor:static/dist/css/sb-admin-2.css')}" rel="stylesheet">
+
+    <!-- Morris Charts CSS -->
+    <link href="${request.static_url('sshmonitor:static/bower_components/morrisjs/morris.css')}" rel="stylesheet">
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+
+
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
     <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
@@ -60,10 +83,54 @@
         </div>
     </div>
 </nav>
-<div class="container-fluid">
-    <div class="row-fluid">
-        ${content}
+<div class="container">
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <i class="fa fa-bar-chart-o fa-fw"></i> Jobs per weekday
+                </div>
+                <!-- /.panel-heading -->
+                <div class="panel-body">
+                    <div id="weekday" class="morris_chartarea"></div>
+                </div>
+                <!-- /.panel-body -->
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <i class="fa fa-bar-chart-o fa-fw"></i> Jobs per weekday
+                </div>
+                <!-- /.panel-heading -->
+                <div class="panel-body">
+                    <div id="jobs_per_hour" class="morris_chartarea"></div>
+                </div>
+                <!-- /.panel-body -->
+            </div>
+        </div>
+    </div>
+    <div class="row">
+    ${content}
+        <div id="morris-area-chart"></div>
+        <div id="morris-donut-chart"></div>
+        <div id="morris-bar-chart"></div>
+        <div id="flot-line-chart"></div>
+        <div id="flot-pie-chart"></div>
+
     </div>
 </div>
+<!-- Metis Menu Plugin JavaScript -->
+<script src="${request.static_url('sshmonitor:static/bower_components/metisMenu/dist/metisMenu.min.js')}"></script>
+
+<!-- Morris Charts JavaScript -->
+<script src="${request.static_url('sshmonitor:static/bower_components/raphael/raphael-min.js')}"></script>
+<script src="${request.static_url('sshmonitor:static/bower_components/morrisjs/morris.min.js')}"></script>
+<script src="${request.static_url('sshmonitor:static/js/morris-data.js')}"></script>
+<script src="${request.static_url('sshmonitor:static/js/update_clusterdata.js')}"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="${request.static_url('sshmonitor:static/dist/js/sb-admin-2.js')}"></script>
+
 </body>
 </html>

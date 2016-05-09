@@ -35,11 +35,11 @@ def main(global_config, **settings):
     initialize_sql(engine)
 
     config.include('pyramid_chameleon')
-    config.registry.settings['ssh_holder'] = SSHConnectionHolder(ssh_param)
+    # config.registry.settings['ssh_holder'] = SSHConnectionHolder(ssh_param)
 
-    fm = FileMonitor(SSHFileBrowser(config.registry.settings['ssh_holder']))
-    print(fm.get_monitored_files())
-    print(fm.validate_files_in_place())
+    # fm = FileMonitor(SSHFileBrowser(config.registry.settings['ssh_holder']))
+    # print(fm.get_monitored_files())
+    # print(fm.validate_files_in_place())
 
     config.add_static_view('static', 'static', cache_max_age=3600)
     config.add_route('job_details', '/jobdetails/{jobid}')
@@ -49,6 +49,7 @@ def main(global_config, **settings):
     config.add_route('jobarchive_config', '/archive/config')
 
     config.add_route('dashboard', '/dashboard')
+    config.add_route('dashboard_statistics', '/dashboard/{fieldname}/json')
 
     config.add_route('filemonitor', '/filemonitor')
     config.add_route('filemonitor_editor', '/filemonitor/{modus}/{options}')

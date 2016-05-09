@@ -157,28 +157,3 @@ class JobRequests():
         JobDatabaseWrapper().write_job_archive_config(keys)
         subreq = Request.blank(self._request.route_path('jobarchive_config'))
         return self._request.invoke_subrequest(subreq)
-
-
-    @view_config(route_name='dashboard', renderer='templates/job_dashboard.pt')
-    def dashboard(self):
-        jobarchive = JobDatabaseWrapper().job_archive()
-
-        permonth = dict()
-        perhour = dict()
-        perweekday = dict()
-        for row in jobarchive:
-            submissiontime = row['SubmissionTime']
-            group = re.search('(\([^)]+\))', submissiontime)
-            if group:
-                submissiontime = group.group(1)[1:-1]
-            dt = datetime.datetime.strptime(submissiontime, '%Y-%m-%d %H:%M:%S')
-            year_month = str(dt.strftime('%Y-%m'))
-            hour = str(dt.strftime('%H'))
-            weekday = str(dt.strftime('%A'))
-
-            perhour[hour] = 1 if hour not in perhour else perhour[hour] + 1
-            permonth[year_month] = 1 if year_month not in permonth else permonth[year_month] + 1
-            perweekday[weekday] = 1 if weekday not in perweekday else perweekday[weekday] + 1
-
-        return {'project': self._projectname, 'content': [perhour, permonth, perweekday]}
-
