@@ -208,7 +208,7 @@ if __name__ == '__main__':
     try:
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(config['hostname'], username=config['username'], password=config['password'])
+        ssh.connect(config['hostname'], username=config['username'], password=config['password'], allow_agent=False, look_for_keys=False)
     except BaseException as e:
         log.error('Error during connection establishment: {0}'.format(str(e)))
         exit(-1)
