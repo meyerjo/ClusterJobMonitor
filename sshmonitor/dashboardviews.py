@@ -101,8 +101,99 @@ class DashboardViews():
         )
         return dict(data=overall_data, charttype='bar')
 
+    @view_config(route_name='dashboard_statistics', match_param='fieldname=waitingtime_per_job', renderer='json')
+    def waittime_per_job(self):
+        jobs = JobDatabaseWrapper.job_archive()
+        job_names = {}
+        for job in jobs:
+            if '_sa_instance_state' in job:
+                del job['_sa_instance_state']
+            if 'JobName' not in job:
+                print('Jobnames not in {0}'.format(job))
+                continue
+            if ('StartTime' not in job) or \
+                    ('CompletionTime' not in job) or \
+                    ('SubmissionTime' not in job):
+                continue
+            if 'JobID' not in job:
+                print('JobID not in job: {0}'.format(job))
+                continue
+            # make sure that they all have a common format
+            timefields = ['StartTime', 'CompletionTime', 'SubmissionTime']
+            for timefield in timefields:
+                if timefield not in job:
+                    continue
+                m = re.search('^[0-9]+\s\(([^\)]+)\)', job[timefield])
+                if m:
+                    job[timefield] = m.group(1)
+
+            if job['JobName'] in job_names:
+                job_names[job['JobName']]['jobid'].append(job['JobID'])
+                job_names[job['JobName']]['starttime'].append(job['StartTime'])
+                job_names[job['JobName']]['completiontime'].append(job['CompletionTime'])
+                job_names[job['JobName']]['submissiontime'].append(job['SubmissionTime'])
+            else:
+                tmp = dict(jobid=[job['JobID']],
+                           starttime=[job['StartTime']],
+                           completiontime=[job['CompletionTime']],
+                           submissiontime=[job['SubmissionTime']])
+                job_names[job['JobName']] = tmp
+
+        # derive durations
+        for (key, item) in job_names.items():
+            if not isinstance(item, dict):
+                continue
+            waiting_time_str = []
+            waiting_time = []
+            for i, elem in enumerate(item['submissiontime']):
+                diff = datetime.datetime.strptime(item['starttime'][i], '%Y-%m-%d %H:%M:%S') - \
+                       datetime.datetime.strptime(elem, '%Y-%m-%d %H:%M:%S')
+                waiting_time_str.append(str(diff))
+                waiting_time.append(diff)
+            duration_time = []
+            duration_time_str = []
+            for i, elem in enumerate(item['completiontime']):
+                diff = datetime.datetime.strptime(elem, '%Y-%m-%d %H:%M:%S') - \
+                       datetime.datetime.strptime(item['starttime'][i], '%Y-%m-%d %H:%M:%S')
+                duration_time_str.append(str(diff))
+                duration_time.append(diff)
+            job_names[key]['waiting_time'] = waiting_time_str
+            job_names[key]['duration'] = duration_time_str
+
+            mean_duration = datetime.timedelta(0)
+            for dur in duration_time:
+                mean_duration += dur
+            mean_duration  = mean_duration / len(duration_time)
+
+            mean_waitingtime = datetime.timedelta(0)
+            for wai in waiting_time:
+                mean_waitingtime += wai
+            mean_waitingtime = mean_waitingtime / len(waiting_time)
+
+            job_names[key]['mean_duration'] = mean_duration.total_seconds()
+            job_names[key]['mean_waiting'] = mean_waitingtime.total_seconds()
+
+        data = []
+        for (key, item) in job_names.items():
+            data.append(dict(jobname=key, waitingtime=item['mean_waiting']))
+
+        overall_data = dict(
+            element=self._request.matchdict['fieldname'],
+            data=data,
+            xkey=['jobname'],
+            ykeys=['waitingtime'],
+            labels=['Waitingtime in sec'],
+            hideHover='auto',
+            resize=True
+        )
+        return dict(data=overall_data, charttype='bar')
+
     @view_config(route_name='dashboard_statistics', renderer='json')
     def dummy(self):
+        """
+        Dummy Request, which gets called, when none of the other view_config actions is matched
+        :return:
+        """
         log = logging.getLogger(__name__)
         try:
             print(self._request.params)
@@ -111,7 +202,6 @@ class DashboardViews():
         log.error('Requested url didnt match any specified view. {0} {1}'
                   .format(self._request.matchdict, self._request.params))
         return self._request.matchdict
-
 
     @view_config(route_name='dashboard', renderer='templates/job_dashboard.pt')
     def dashboard(self):

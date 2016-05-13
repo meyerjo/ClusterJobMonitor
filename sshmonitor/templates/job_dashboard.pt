@@ -125,16 +125,87 @@
         </div>
     </div>
 
-
-    <div class="row">
-    ${content}
-        <div id="morris-area-chart"></div>
-        <div id="morris-donut-chart"></div>
-        <div id="morris-bar-chart"></div>
-        <div id="flot-line-chart"></div>
-        <div id="flot-pie-chart"></div>
-
+    <div class="row-fluid">
+        <div class="col-sm-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <i class="fa fa-bar-chart-o fa-fw"></i> Jobs per month
+                </div>
+                <!-- /.panel-heading -->
+                <div class="panel-body">
+                    <div id="waitingtime_per_job" class="morris_chartarea"></div>
+                </div>
+                <!-- /.panel-body -->
+            </div>
+        </div>
     </div>
+
+    <div class="row-fluid">
+        <div class="col-sm-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <i class="fa fa-bar-chart-o fa-fw"></i> Jobs per weekday
+                </div>
+                <!-- /.panel-heading -->
+                <div class="panel-body">
+        <div id="morris-donut-chart"></div>
+                </div>
+                <!-- /.panel-body -->
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <i class="fa fa-bar-chart-o fa-fw"></i> Jobs per weekday
+                </div>
+                <!-- /.panel-heading -->
+                <div class="panel-body">
+                    <div id="morris-area-chart"></div>
+                </div>
+                <!-- /.panel-body -->
+            </div>
+        </div>
+    </div>
+
+    <div class="row-fluid">
+        <div class="col-sm-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <i class="fa fa-bar-chart-o fa-fw"></i> Jobs per weekday
+                </div>
+                <!-- /.panel-heading -->
+                <div class="panel-body">
+        <div id="morris-bar-chart"></div>
+                </div>
+                <!-- /.panel-body -->
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <i class="fa fa-bar-chart-o fa-fw"></i> Jobs per weekday
+                </div>
+                <!-- /.panel-heading -->
+                <div class="panel-body">
+        <div id="flot-line-chart"></div>
+                </div>
+                <!-- /.panel-body -->
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <i class="fa fa-bar-chart-o fa-fw"></i> Jobs per weekday
+                </div>
+                <!-- /.panel-heading -->
+                <div class="panel-body">
+        <div id="flot-pie-chart"></div>
+                </div>
+                <!-- /.panel-body -->
+            </div>
+        </div>
+    </div>
+
 </div>
 <!-- Metis Menu Plugin JavaScript -->
 <script src="${request.static_url('sshmonitor:static/bower_components/metisMenu/dist/metisMenu.min.js')}"></script>
@@ -142,7 +213,6 @@
 <!-- Morris Charts JavaScript -->
 <script src="${request.static_url('sshmonitor:static/bower_components/raphael/raphael-min.js')}"></script>
 <script src="${request.static_url('sshmonitor:static/bower_components/morrisjs/morris.min.js')}"></script>
-<script src="${request.static_url('sshmonitor:static/js/morris-data.js')}"></script>
 <script src="${request.static_url('sshmonitor:static/js/update_clusterdata.js')}"></script>
 
 <!-- Custom Theme JavaScript -->

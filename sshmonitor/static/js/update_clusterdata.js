@@ -12,7 +12,12 @@ $(document).ready(function() {
                 else if (data['charttype'] == 'line') {
                     data = data['data'];
                     Morris.Line(data);
-                } else {
+                } else if (data['charttype'] == 'donut') {
+                    data = data['data'];
+                    Morris.Donut(data);
+                }
+                else
+                {
                     console.log(data);
                 }
             }
