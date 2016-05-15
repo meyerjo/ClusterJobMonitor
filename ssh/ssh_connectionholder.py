@@ -4,7 +4,7 @@ import socket
 import paramiko
 import sys
 
-from scp import SCPClient
+from paramiko.ssh_exception import SSHException
 
 class SSHConnectionHolder:
 
@@ -49,7 +49,8 @@ class SSHConnectionHolder:
         if self.ssh is None:
             return False
         try:
-            x = self.ssh.get_transport().is_active()
+            #trans = self.ssh.get_transport().is_active()
+            stdin, stdout, stderr = self.ssh.exec_command('echo \'test\'')
             return True
         except BaseException as e:
             log.error('Connection alive: {0}'.format(str(e)))
@@ -68,18 +69,18 @@ class SSHConnectionHolder:
             stdout = self._read_output(stdout)
             stderr = self._read_output(stderr)
 
-            if stdout['error'] is None:
-                lines = ''.join(stdout['content'])
-            else:
-                lines = '<error>{0}</error>'.format(stdout['error'])
-
+            lines = '<error>{0}</error>'.format(stdout['error']) if stdout['error'] is not None \
+                else ''.join(stdout['content'])
             return dict(error=None, stdin=stdin, stdout=stdout,
                         stderr=stderr, stdoutstr=lines, errordetails=None)
         except socket.error as e:
             log.error('Connection error with paramiko ssh client: {0}'.format(str(e)))
             return dict(error=str(e), errordetails=None)
+        except SSHException as e:
+            log.error('Error during execution of command: {0}'.format(str(e)))
+            return dict(error=str(e), errordetails=None)
         except BaseException as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
-            log.error(str(e))
+            log.error('Send command failed: {0}'.format(str(e)))
             # reset connection once it is not alive anymore
             return dict(error=str(e), errordetails=exc_tb.tb_lineno)
