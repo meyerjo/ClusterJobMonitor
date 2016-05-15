@@ -5,7 +5,7 @@ import xml
 import xml.etree.ElementTree as ET
 
 from ssh.ssh_connectionholder import SSHConnectionHolder
-from sshmonitor import JobManager
+from jobmanager.jobmanager import JobManager
 
 
 class SSHBasedJobManager(JobManager):

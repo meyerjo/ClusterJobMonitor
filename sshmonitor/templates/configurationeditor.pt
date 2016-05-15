@@ -37,8 +37,10 @@
 
     <script typ="text/javascript">
         $(document).ready(function() {
-            alert('test')
-        })
+            $('.add_configuration').on('click', function() {
+                alert('test')
+            });
+        });
     </script>
 
 </head>
@@ -104,6 +106,34 @@
             </div>
         </div>
     </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    General configuration
+                </div>
+                <div class="panel-body">
+                    <div class="col-sm-6">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">Password</div>
+                            <div class="panel-body">
+                                <form>
+                                    <div class="col-sm-3">Password:</div>
+                                    <div class="col-sm-6">
+                                        <input type="text" name="password"/>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <button>Speichern</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-sm-12">
             <div class="panel panel-default">

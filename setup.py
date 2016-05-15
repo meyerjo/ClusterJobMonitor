@@ -42,5 +42,5 @@ setup(name='SSHMonitor',
       entry_points="""\
       [paste.app_factory]
       main = sshmonitor:main
-      """, requires=['transaction']
+      """, requires=['transaction', 'jsonpickle']
       )

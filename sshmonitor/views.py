@@ -1,17 +1,13 @@
-import datetime
 import logging
 
-import re
-
 import jsonpickle
-import transaction
 from pyramid.request import Request
 from pyramid.view import view_config
 
+from jobmanager.job_database_wrapper import JobDatabaseWrapper
 from models import DBSession
 from models.Job import Job, JobOutput
-from sshmonitor import SSHBasedJobManager
-from sshmonitor.job_database_wrapper import JobDatabaseWrapper
+from jobmanager.sshbasedjobmanager import SSHBasedJobManager
 
 
 class JobRequests():

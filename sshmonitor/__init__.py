@@ -5,12 +5,10 @@ import jsonpickle
 from pyramid.config import Configurator
 from sqlalchemy import engine_from_config
 
+from filemonitor.filemonitor import FileMonitor
 from models import initialize_sql
 from ssh.ssh_connectionholder import SSHConnectionHolder
 from ssh.sshfilebrowser import SSHFileBrowser
-from sshmonitor.filemonitor import FileMonitor
-from sshmonitor.jobmanager import JobManager
-from sshmonitor.sshbasedjobmanager import SSHBasedJobManager
 
 
 def main(global_config, **settings):

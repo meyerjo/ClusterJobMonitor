@@ -1,10 +1,11 @@
 import datetime
 import logging
-
 import re
+
 from pyramid.view import view_config
 
-from sshmonitor.job_database_wrapper import JobDatabaseWrapper
+from jobmanager.job_database_wrapper import JobDatabaseWrapper
+
 
 class DashboardViews():
 

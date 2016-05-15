@@ -1,17 +1,14 @@
 import logging
 import os
 
-import re
 import transaction
 from pyramid.request import Request
 from pyramid.view import view_config
-from webob.multidict import NestedMultiDict
 
+from filemonitor.filemonitor import FileMonitor
 from models import DBSession
 from models.FileMonitorModels import MonitoredFile
 from ssh.sshfilebrowser import SSHFileBrowser
-from sshmonitor import SSHBasedJobManager
-from sshmonitor.filemonitor import FileMonitor
 
 
 class FileViews:
@@ -39,7 +36,7 @@ class FileViews:
         grouped_files = group_files_by_dictionary(monitored_files)
         item_order = ['id', 'folder', 'filename', 'createtime']
         log.error('not yet implemented')
-        return {'error': 'not yet implemented', 'project': 'Not yet implemented',
+        return {'error': 'not yet implemented', 'project': 'ClusterManagement',
                 'grouped_files': grouped_files, 'item_order': item_order}
 
     def _get_monitored_files(self, path):
@@ -112,4 +109,4 @@ class FileViews:
 
         log.info('Requesting folder: {0}'.format(folder_request))
         output = ssh_jobmanager.get_folder_content(folder_request)
-        return {'project': 'FileBrowser', 'content': output}
+        return {'project': 'ClusterManagement', 'content': output}

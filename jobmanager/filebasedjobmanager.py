@@ -1,7 +1,7 @@
 import logging
 import xml.etree.ElementTree as ET
 
-from sshmonitor import JobManager
+from jobmanager.jobmanager import JobManager
 
 
 class FileBasedJobManager(JobManager):
