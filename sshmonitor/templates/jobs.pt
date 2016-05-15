@@ -10,9 +10,26 @@
 
     <title>Starter Scaffold for The Pyramid Web Framework</title>
 
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/js/bootstrap.min.js"></script>
+
     <!-- Bootstrap core CSS -->
     <link href="//oss.maxcdn.com/libs/twitter-bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+
+    <!-- MetisMenu CSS -->
+    <link href="${request.static_url('sshmonitor:static/bower_components/metisMenu/dist/metisMenu.min.css')}" rel="stylesheet">
+
+    <!-- Timeline CSS -->
+    <link href="${request.static_url('sshmonitor:static/dist/css/timeline.css')}" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="${request.static_url('sshmonitor:static/dist/css/sb-admin-2.css')}" rel="stylesheet">
+
+    <!-- Morris Charts CSS -->
+    <link href="${request.static_url('sshmonitor:static/bower_components/morrisjs/morris.css')}" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -22,29 +39,49 @@
 </head>
 
 <body>
-<nav class="navbar navbar-inverse">
-    <div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="/">${project}</a>
-        </div>
+<!-- Navigation -->
+<nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">${project}</a>
+    </div>
 
-        <!-- Collect the nav links, forms, and other content for toggling -->
-        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-            <ul class="nav navbar-nav">
-                <li class="active"><a href="/">Jobs <span class="sr-only">(current)</span></a></li>
-                <li><a href="/browser">FileBrowser</a></li>
-                <li><a href="/sshconfiguration">SSHConfiguration</a></li>
+    <div class="navbar-default sidebar" role="navigation">
+        <div class="sidebar-nav navbar-collapse">
+            <ul class="nav" id="side-menu">
+                <li>
+                    <a tal:attributes="href request.route_url('dashboard')"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
+                </li>
+                <li>
+                    <a tal:attributes="href request.route_url('jobs')"><i class="fa fa-dashboard fa-fw"></i> Jobs</a>
+                </li>
+                <li>
+                    <a tal:attributes="href request.route_url('filebrowser')"><i class="fa fa-files-o fa-fw"></i> FileBrowser</a>
+                </li>
+                <li>
+                    <a tal:attributes="href request.route_url('filemonitor')"><i class="fa fa-desktop fa-fw"></i> File-Monitor</a>
+                </li>
+                <li>
+                    <a tal:attributes="href request.route_url('jobarchive')">
+                        <i class="fa fa-archive fa-fw"></i> Archive
+                    </a>
+                </li>
+                <li>
+                    <a tal:attributes="href request.route_url('sshconfiguration')"><i class="fa fa-cog fa-fw"></i> Configuration</a>
+                </li>
             </ul>
         </div>
+        <!-- /.sidebar-collapse -->
     </div>
+    <!-- /.navbar-static-side -->
 </nav>
-<div class="container">
+
+<div id="page-wrapper">
     <tal:block tal:switch="python:isinstance(jobs, dict) and 'joborder' in jobs">
         <tal:block tal:case="True">
             <tal:block tal:define="global joborder jobs['joborder']"></tal:block>
@@ -60,72 +97,114 @@
             </div>
         </div>
     </tal:block>
+    <div class="row">
+        <div class="col-lg-3 col-md-6" tal:repeat="element joborder">
+            <tal:block tal:condition="python: element == 'blocked'">
+                <tal:block  tal:define="global classname 'panel-red'"></tal:block>
+            </tal:block>
+            <tal:block tal:condition="python: element == 'active'">
+                <tal:block  tal:define="global classname 'panel-green'"></tal:block>
+            </tal:block>
+            <tal:block tal:condition="python: element == 'eligible'">
+                <tal:block  tal:define="global classname 'panel-default'"></tal:block>
+            </tal:block>
+            <tal:block tal:condition="python: element == 'completed'">
+                <tal:block  tal:define="global classname 'panel-info'"></tal:block>
+            </tal:block>
+            <tal:block tal:condition="not:exists:classname">
+                <tal:block tal:define="global classname 'panel-primary'"></tal:block>
+            </tal:block>
+            <div class="panel ${classname}">
+                <div class="panel-heading">
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <i class="fa fa-comments fa-5x"></i>
+                        </div>
+                        <div class="col-xs-9 text-right">
+                            <div class="huge" tal:content="len(jobs[element]['body'])"></div>
+                            <div>
+                                in category ${element}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <a href="#">
+                    <div class="panel-footer">
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
     <div class="row" tal:repeat="orderelement joborder">
         <tal:block tal:define="global jobclass orderelement; global jobelements jobs[orderelement]"></tal:block>
-        <h1>${jobclass} (<span tal:content="len(jobelements['body']) if 'body' in jobelements else 0"></span>) </h1>
-        <table tal:condition="python: len(jobelements) >= 1 and ('header' in jobelements)" class="table table-responsive table-bordered table-striped">
-            <tr>
-                <th tal:repeat="key jobelements['header']">
-                    <span tal:content="key"></span>
-                </th>
-                <th tal:condition="python: (isinstance(jobelements, dict)) and (jobclass in ['active', 'eligible'])">
-                    Cancel
-                </th>
-                <th>
-                    Details
-                </th>
-                <th>
-                    Output
-                </th>
-            </tr>
-                <span tal:repeat="row jobelements['body']">
-                    <tr>
-                        <td tal:repeat="val row">
-                            <span tal:content="val"></span>
-                        </td>
-                        <td tal:condition="python: (jobclass in ['active', 'eligible'])">
-                            <a href="/canceljob/${row[0]}" value="${row[0]}" class="btn btn-danger">Cancel</a>
-                        </td>
-                        <td>
-                            <a href="/jobdetails/${row[0]}"><i class="fa fa-search-plus fa"></i></a>
-                        </td>
-                        <td>
-                            <!-- TODO: Check if this tal construct can be simplified -->
-                            <span tal:switch="exists: output">
-                                <span tal:case="True">
-                                    <span tal:switch="python: ('jobid' in output) and (row[0] == output['jobid'])">
-                                        <a href="/" tal:case="True"><i class="fa fa-terminal"></i></a>
-                                        <a href="/joboutput/${row[0]}" tal:case="False"><i class="fa fa-terminal"></i></a>
-                                    </span>
+        <div class="col-sm-8">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <i class="fa fa-bar-chart-o fa-fw"></i> ${jobclass} (<span tal:content="len(jobelements['body']) if 'body' in jobelements else 0"></span>)
+                </div>
+                <!-- /.panel-heading -->
+                <div class="panel-body">
+                    <table tal:condition="python: len(jobelements) >= 1 and ('header' in jobelements)" class="table table-responsive table-bordered table-striped">
+                        <tr>
+                            <th tal:repeat="key jobelements['header']"><span tal:content="key"></span></th>
+                            <th tal:condition="python: (isinstance(jobelements, dict)) and (jobclass in ['active', 'eligible'])">
+                                Cancel
+                            </th>
+                            <th>Details</th>
+                            <th>Output</th>
+                        </tr>
+                            <span tal:repeat="row jobelements['body']">
+                                <tr>
+                                    <td tal:repeat="val row">
+                                        <span tal:content="val"></span>
+                                    </td>
+                                    <td tal:condition="python: (jobclass in ['active', 'eligible'])">
+                                        <a tal:attributes="href request.route_url('cancel_job', jobid=row[0])" value="${row[0]}" class="btn btn-danger">Cancel</a>
+                                    </td>
+                                    <td>
+                                        <a tal:attributes="href request.route_url('job_details', jobid=row[0])"><i class="fa fa-search-plus fa"></i></a>
+                                    </td>
+                                    <td>
+                                        <!-- TODO: Check if this tal construct can be simplified -->
+                                        <span tal:switch="exists: output">
+                                            <span tal:case="True">
+                                                <span tal:switch="python: ('jobid' in output) and (row[0] == output['jobid'])">
+                                                    <a href="/" tal:case="True"><i class="fa fa-terminal"></i></a>
+                                                    <a tal:attributes="href request.route_url('joboutput', jobid=row[0])" tal:case="False"><i class="fa fa-terminal"></i></a>
+                                                </span>
+                                            </span>
+                                            <span tal:case="False">
+                                                <a tal:attributes="href request.route_url('joboutput', jobid=row[0])"><i class="fa fa-terminal"></i></a>
+                                            </span>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <span tal:condition="exists: details">
+                                    <tr tal:condition="python: ('JobID' in details) and (row[0] == details['JobID'])">
+                                        <td tal:attributes="colspan len(jobelements['header'])+1">
+                                            <table class="table table-striped table-bordered">
+                                                <tr tal:repeat="(key, val) details.items()">
+                                                    <td style="font-weight: bold;" tal:content="key"></td>
+                                                    <td tal:content="val"></td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
                                 </span>
-                                <span tal:case="False">
-                                    <a href="/joboutput/${row[0]}"><i class="fa fa-terminal"></i></a>
+                                <span tal:condition="exists: output">
+                                    <tr tal:condition="python: ('jobid' in output) and (row[0] == output['jobid'])">
+                                        <td tal:attributes="colspan len(jobelements['header'])+1">
+                                            <h4>Output:</h4><span tal:condition="python: 'type' in output">Source: ${output['type']}</span>
+                                            <textarea class="col-sm-12" style="height: 300px; enabled: true;" tal:content="structure output['output']"></textarea>
+                                        </td>
+                                    </tr>
                                 </span>
                             </span>
-                        </td>
-                    </tr>
-                    <span tal:condition="exists: details">
-                        <tr tal:condition="python: ('JobID' in details) and (row[0] == details['JobID'])">
-                            <td tal:attributes="colspan len(jobelements['header'])+1">
-                                <table class="table table-striped table-bordered">
-                                    <tr tal:repeat="(key, val) details.items()">
-                                        <td style="font-weight: bold;" tal:content="key"></td>
-                                        <td tal:content="val"></td>
-                                    </tr>
-                                </table>
-                            </td>
-                        </tr>
-                    </span>
-                    <span tal:condition="exists: output">
-                        <tr tal:condition="python: ('jobid' in output) and (row[0] == output['jobid'])">
-                            <td tal:attributes="colspan len(jobelements['header'])+1">
-                                <h4>Output:</h4><span tal:condition="python: 'type' in output">Source: ${output['type']}</span>
-                                <textarea class="col-sm-12" style="height: 300px; enabled: true;" tal:content="structure output['output']"></textarea>
-                            </td>
-                        </tr>
-                    </span>
-                </span>
-        </table>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
     <a tal:attributes="href request.route_url('jobarchive')" class="btn btn-link">Archive</a>
 </div>

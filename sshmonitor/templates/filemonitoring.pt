@@ -14,7 +14,19 @@
 
     <!-- Bootstrap core CSS -->
     <link href="//oss.maxcdn.com/libs/twitter-bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+    <!-- MetisMenu CSS -->
+    <link href="${request.static_url('sshmonitor:static/bower_components/metisMenu/dist/metisMenu.min.css')}" rel="stylesheet">
+
+    <!-- Timeline CSS -->
+    <link href="${request.static_url('sshmonitor:static/dist/css/timeline.css')}" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="${request.static_url('sshmonitor:static/dist/css/sb-admin-2.css')}" rel="stylesheet">
+
+    <!-- Morris Charts CSS -->
+    <link href="${request.static_url('sshmonitor:static/bower_components/morrisjs/morris.css')}" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -35,131 +47,153 @@
 </head>
 
 <body>
-<nav class="navbar navbar-inverse">
-    <div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="/">${project}</a>
-        </div>
+<!-- Navigation -->
+<nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">${project}</a>
+    </div>
 
-        <!-- Collect the nav links, forms, and other content for toggling -->
-        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-            <ul class="nav navbar-nav">
-                <li><a href="/">Jobs <span class="sr-only">(current)</span></a></li>
-                <li class="active"><a href="/browser">FileBrowser</a></li>
-                <li><a href="/sshconfiguration">SSHConfiguration</a></li>
+    <div class="navbar-default sidebar" role="navigation">
+        <div class="sidebar-nav navbar-collapse">
+            <ul class="nav" id="side-menu">
+                <li>
+                    <a tal:attributes="href request.route_url('dashboard')"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
+                </li>
+                <li>
+                    <a tal:attributes="href request.route_url('jobs')"><i class="fa fa-dashboard fa-fw"></i> Jobs</a>
+                </li>
+                <li>
+                    <a tal:attributes="href request.route_url('filebrowser')"><i class="fa fa-files-o fa-fw"></i> FileBrowser</a>
+                </li>
+                <li>
+                    <a tal:attributes="href request.route_url('filemonitor')"><i class="fa fa-desktop fa-fw"></i> File-Monitor</a>
+                </li>
+                <li>
+                    <a tal:attributes="href request.route_url('jobarchive')">
+                        <i class="fa fa-archive fa-fw"></i> Archive
+                    </a>
+                </li>
+                <li>
+                    <a tal:attributes="href request.route_url('sshconfiguration')"><i class="fa fa-cog fa-fw"></i> Configuration</a>
+                </li>
             </ul>
         </div>
+        <!-- /.sidebar-collapse -->
     </div>
+    <!-- /.navbar-static-side -->
 </nav>
-<div class="container" tal:switch="'folder' in content">
-    <tal:block tal:case="True">
-    <div class="row">
-        <div class="col-sm-3">Current folder:</div>
-        <div class="col-sm-3">
-            <span tal:content="content['folder']"></span>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-sm-3">Total:</div>
-        <div class="col-sm-3">
-            <span tal:content="content['title']"></span>
-        </div>
-    </div>
-    <div class="row" tal:define="parts content['folder'].split('/')">
-        <div class="col-sm-2">
-            Navigation:
-        </div>
-        <div class="col-sm-6">
-            <span tal:repeat="(i, part) enumerate(parts)">
-                <span  tal:define="path '/'.join(parts[:i+1])">
-                    <span>/</span>
-                    <a href="?folder=${path}&currentfolder=${content['folder']}">${part}</a>
+
+<div id="page-wrapper">
+    <tal:block tal:switch="'folder' in content">
+        <tal:block tal:case="True">
+            <div class="row">
+                <div class="col-sm-3">Current folder:</div>
+                <div class="col-sm-3">
+                    <span tal:content="content['folder']"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-3">Total:</div>
+                <div class="col-sm-3">
+                    <span tal:content="content['title']"></span>
+                </div>
+            </div>
+            <div class="row" tal:define="parts content['folder'].split('/')">
+                <div class="col-sm-2">
+                    Navigation:
+                </div>
+                <div class="col-sm-6">
+                <span tal:repeat="(i, part) enumerate(parts)">
+                    <span  tal:define="path '/'.join(parts[:i+1])">
+                        <span>/</span>
+                        <a href="?folder=${path}&currentfolder=${content['folder']}">${part}</a>
+                    </span>
                 </span>
-            </span>
-        </div>
-        <div class="col-sm-4">
-            <form action="${request.route_path('filebrowser')}" method="get">
-                <input type="hidden" name="currentfolder" value="${content['folder']}"/>
-                <input type="text" class="input-large" id="folderinput" name="folder"/>
-                <button class="btn btn-default">Browse</button>
-                <select name="pathdescription" class="form-control">
-                    <option value="abs">absolute</option>
-                    <option value="rel">relative</option>
-                </select>
-            </form>
-        </div>
-    </div>
-    <div class="row">
-        <form action="${request.route_path('filemonitor_editor', modus='add', options='files')}" method="post">
-            <input type="hidden" name="folder" value="${content['folder']}"/>
-            <input type="hidden" name="currentfolder" value="${content['folder']}"/>
-            <input type="hidden" name="pathdescription" value="abs"/>
-            <table class="table table-responsive table-striped">
-                <tr>
-                    <td>
-                        <button class="btn btn-default" value="monitorfiles" id="monitorbutton" type="submit">Monitor (selected files)</button>
-                    </td>
-                    <td>
-                        Options:
-                    </td>
-                    <td>
-                        <label for="withmd5">Check existence and equality:</label>
-                        <button type="button" data-toggle="popover" data-placement="top" title="You can decide whether server should only check for existence or if it should also check the md5 hash of the file"><i class="fa fa-question"></i></button>
-                        <input type="checkbox" value="1" name="withmd5"/>
-                    </td>
-                </tr>
-            </table>
-            <table class="table table-hovered table-responsive table-striped" id="browser">
-                <tr>
-                    <th>Select <input type="checkbox" value="all" name="allfiles" id="select_allfiles"/></th>
-                    <th>Permissions</th>
-                    <th>Links</th>
-                    <th>Owner</th>
-                    <th>Group</th>
-                    <th>Date</th>
-                    <th>Size</th>
-                    <th>Name</th>
-                </tr>
-                <tr>
-                    <td colspan="6"></td>
-                    <td><a href="${request.route_path('filebrowser')}?folder=..&currentfolder=${content['folder']}">..</a></td>
-                </tr>
-                <tr tal:repeat="l content['lines']">
-                    <td>
-                        <span tal:condition="python: not l['permission'].startswith('d')">
-                            <input type="checkbox" value="${content['folder']}/${l['name']}" class="select_file" name="file"/>
-                        </span>
-                    </td>
-                    <td><span tal:content="l['permission']"></span></td>
-                    <td><span tal:content="l['number_of_links']"></span></td>
-                    <td><span tal:content="l['owner']"></span></td>
-                    <td><span tal:content="l['group']"></span></td>
-                    <td><span tal:content="l['date']"></span></td>
-                    <td><span tal:content="l['filesize']"></span></td>
-                    <td>
-                        <span tal:switch="python: l['permission'].startswith('d')">
-                            <a tal:case="True" href="${request.route_path('filebrowser')}?folder=${l['name']}&currentfolder=${content['folder']}"><span tal:content="l['name']"></span></a>
-                            <span tal:case="False" tal:content="l['name']"></span>
-                        </span>
-                    </td>
-                </tr>
-            </table>
-        </form>
-    </div>
-    </tal:block>
-    <tal:block tal:case="False">
-        <div class="alert alert-danger" role="alert">
-            <tal:block tal:switch="python: 'error' in content">
-                <span tal:case="True">${content['error']}</span>
-                <span tal:case="False">Error 'error' not in content: ${content}</span>
-            </tal:block>
-        </div>
+                </div>
+                <div class="col-sm-4">
+                    <form action="${request.route_path('filebrowser')}" method="get">
+                        <input type="hidden" name="currentfolder" value="${content['folder']}"/>
+                        <input type="text" class="input-large" id="folderinput" name="folder"/>
+                        <button class="btn btn-default">Browse</button>
+                        <select name="pathdescription" class="form-control">
+                            <option value="abs">absolute</option>
+                            <option value="rel">relative</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
+            <div class="row">
+                <form action="${request.route_path('filemonitor_editor', modus='add', options='files')}" method="post">
+                    <input type="hidden" name="folder" value="${content['folder']}"/>
+                    <input type="hidden" name="currentfolder" value="${content['folder']}"/>
+                    <input type="hidden" name="pathdescription" value="abs"/>
+                    <table class="table table-responsive table-striped">
+                        <tr>
+                            <td>
+                                <button class="btn btn-default" value="monitorfiles" id="monitorbutton" type="submit">Monitor (selected files)</button>
+                            </td>
+                            <td>
+                                Options:
+                            </td>
+                            <td>
+                                <label for="withmd5">Check existence and equality:</label>
+                                <button type="button" data-toggle="popover" data-placement="top" title="You can decide whether server should only check for existence or if it should also check the md5 hash of the file"><i class="fa fa-question"></i></button>
+                                <input type="checkbox" value="1" name="withmd5"/>
+                            </td>
+                        </tr>
+                    </table>
+                    <table class="table table-hovered table-responsive table-striped" id="browser">
+                        <tr>
+                            <th>Select <input type="checkbox" value="all" name="allfiles" id="select_allfiles"/></th>
+                            <th>Permissions</th>
+                            <th>Links</th>
+                            <th>Owner</th>
+                            <th>Group</th>
+                            <th>Date</th>
+                            <th>Size</th>
+                            <th>Name</th>
+                        </tr>
+                        <tr>
+                            <td colspan="6"></td>
+                            <td><a href="${request.route_path('filebrowser')}?folder=..&currentfolder=${content['folder']}">..</a></td>
+                        </tr>
+                        <tr tal:repeat="l content['lines']">
+                            <td>
+                            <span tal:condition="python: not l['permission'].startswith('d')">
+                                <input type="checkbox" value="${content['folder']}/${l['name']}" class="select_file" name="file"/>
+                            </span>
+                            </td>
+                            <td><span tal:content="l['permission']"></span></td>
+                            <td><span tal:content="l['number_of_links']"></span></td>
+                            <td><span tal:content="l['owner']"></span></td>
+                            <td><span tal:content="l['group']"></span></td>
+                            <td><span tal:content="l['date']"></span></td>
+                            <td><span tal:content="l['filesize']"></span></td>
+                            <td>
+                            <span tal:switch="python: l['permission'].startswith('d')">
+                                <a tal:case="True" href="${request.route_path('filebrowser')}?folder=${l['name']}&currentfolder=${content['folder']}"><span tal:content="l['name']"></span></a>
+                                <span tal:case="False" tal:content="l['name']"></span>
+                            </span>
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+        </tal:block>
+        <tal:block tal:case="False">
+            <div class="alert alert-danger" role="alert">
+                <tal:block tal:switch="python: 'error' in content">
+                    <span tal:case="True">${content['error']}</span>
+                    <span tal:case="False">Error 'error' not in content: ${content}</span>
+                </tal:block>
+            </div>
+        </tal:block>
     </tal:block>
 </div>
 <script type="text/javascript">
