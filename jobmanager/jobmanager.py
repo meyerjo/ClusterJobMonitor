@@ -43,7 +43,6 @@ class JobManager:
     def get_active_jobs(self):
         pass
 
-
     def get_eligible_jobs(self):
         pass
 
@@ -63,4 +62,7 @@ class JobManager:
         pass
 
     def get_job_output(self, jobid):
+        pass
+
+    def update(self):
         pass

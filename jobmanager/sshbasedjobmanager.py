@@ -4,6 +4,11 @@ import re
 import xml
 import xml.etree.ElementTree as ET
 
+import jsonpickle
+
+from jobmanager.job_database_wrapper import JobDatabaseWrapper
+from models import DBSession
+from models.Job import Job, JobOutput
 from ssh.ssh_connectionholder import SSHConnectionHolder
 from jobmanager.jobmanager import JobManager
 
@@ -138,5 +143,20 @@ class SSHBasedJobManager(JobManager):
                     stdout['type'] = 'stderr'
         return stdout
 
+    def update(self):
+        jobs = self.get_all_jobs()
+        JobDatabaseWrapper.write_jobs_to_database(jobs)
+        for item, elements in jobs.items():
+            for elem in elements:
+                jobdetail = self.get_job_details(elem['JobID'])
+                output = self.get_job_output(elem['JobID'])
 
+                job = DBSession.query(Job).filter(Job.id == jobdetail['JobID']).first()
+                if job is not None:
+                    job.jobdetails = jsonpickle.encode(jobdetail)
+                    DBSession.commit()
+                joboutput = JobOutput(elem['JobID'], jsonpickle.encode(output))
+                DBSession.add(joboutput)
+                DBSession.commit()
+        return jobs
 

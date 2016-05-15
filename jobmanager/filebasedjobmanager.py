@@ -55,3 +55,6 @@ class FileBasedJobManager(JobManager):
         log = logging.getLogger(__name__)
         log.error("Can't retrieve additional text information")
         return dict(error='Check log')
+
+    def update(self):
+        return dict(error='not implemented')
