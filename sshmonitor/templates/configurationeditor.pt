@@ -149,7 +149,7 @@
                                     <i class="fa fa-bar-chart-o fa-fw"></i> Configuration
                                 </div>
                                 <!-- /.panel-heading -->
-                                <div class="panel-body"
+                                <div class="panel-body">
                                     <form tal:attributes="action request.route_url('sshconfiguration')" method="POST">
                                         <div class="row">
                                             <div class="col-sm-3"><label for="servername">Server:</label></div>
