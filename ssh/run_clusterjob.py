@@ -6,6 +6,7 @@ import logging
 import os
 import re
 from argparse import ArgumentParser
+from math import floor
 
 
 class JobSubmitStatement():
@@ -77,7 +78,11 @@ class JobSubmitStatement():
         nodes = 'nodes={0}'.format(self._config['nodes'])
         ppn= 'ppn={0}'.format(self._config['ppn'])
         walltime = 'walltime={0}'.format(self._get_walltime())
-        pmem = 'pmem={0}gb'.format(int(self._config['memory_per_proc']))
+        if 'memory' in self._config and self._config['memory'] <= 64:
+            mem_in_mb = self._config['memory'] * 1024
+            self._config['memory_per_proc'] = floor(mem_in_mb / int(self._config['ppn']))
+
+        pmem = 'pmem={0}mb'.format(int(self._config['memory_per_proc']))
 
         return '-l {0}:{1},{2},{3}'.format(nodes, ppn, walltime, pmem)
 
@@ -112,7 +117,9 @@ class JobSubmitStatement():
     def _get_variables(self):
         variables = ['']
         log = logging.getLogger(__name__)
-        if self._config['scriptvariables'] is not None and  self._config['scriptvariables'] != '':
+        if 'scriptvariables' not in self._config:
+            return variables
+        if self._config['scriptvariables'] is not None and self._config['scriptvariables'] != '':
             variables = []
             scriptvariables = self._config['scriptvariables']
             if os.path.exists(scriptvariables):

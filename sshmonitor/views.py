@@ -1,6 +1,7 @@
 import logging
 
 import jsonpickle
+import sys
 from pyramid.request import Request
 from pyramid.view import view_config
 
@@ -8,6 +9,7 @@ from jobmanager.job_database_wrapper import JobDatabaseWrapper
 from models import DBSession
 from models.Job import Job, JobOutput
 from jobmanager.sshbasedjobmanager import SSHBasedJobManager
+from ssh.run_clusterjob import JobSubmitStatement
 
 
 class JobRequests():
@@ -139,9 +141,8 @@ class JobRequests():
 
         return {'project': self._projectname, 'keys': keys, 'examples': examples}
 
-
     @view_config(route_name='jobarchive_config', renderer='json', request_method='POST')
-    def test(self):
+    def job_archive_config(self):
         post_list = self._request.POST
         post_dict = post_list.__dict__
         post_list = post_dict['_items']
@@ -153,3 +154,62 @@ class JobRequests():
         JobDatabaseWrapper().write_job_archive_config(keys)
         subreq = Request.blank(self._request.route_path('jobarchive_config'))
         return self._request.invoke_subrequest(subreq)
+
+    @view_config(route_name='send_job', renderer='json', request_method='POST', match_param='action=test')
+    def send_job_test(self):
+        log = logging.getLogger(__name__)
+        log.info(self._request.params)
+        try:
+            config_objects = dict(self._request.params)
+            if 'pmem' in config_objects:
+                config_objects['memory'] = config_objects['pmem']
+                del config_objects['pmem']
+            log.info(config_objects)
+            config_objects['verbose'] = False
+            config_objects['nodetype'] = 'singlenode'
+            config_objects['mailnotification'] = False
+
+            key_names_to_convert = ['memory', 'nodes', 'ppn']
+            for key in key_names_to_convert:
+                if key in config_objects:
+                    config_objects[key] = int(config_objects[key])
+
+            if 'walltime' in config_objects:
+                if config_objects['walltime'] == '':
+                    config_objects['walltime'] = '01:00:00'
+        except BaseException as e:
+            log.error(str(e))
+            return dict(error=str(e), commands=None)
+        try:
+            stmt = JobSubmitStatement()
+            stmt.set_config(config_objects)
+            cmds = stmt.make()
+            return dict(error=None, commands=cmds)
+        except BaseException as e:
+            log.error(str(e))
+            return dict(error=str(e), commands=None)
+
+    @view_config(route_name='send_job', request_method='POST', match_param='action=send')
+    def send_job(self):
+        log = logging.getLogger(__name__)
+        log.info(self._request.matchdict)
+        log.info(self._request.params)
+        subreq = Request.blank(self._request.route_url('jobs'), POST={'error': 'Not yet implemented'})
+        return self._request.invoke_subrequest(subreq)
+
+    @view_config(route_name='send_job', renderer='json', request_method='GET', match_param='action=scripts')
+    def script_names(self):
+        job_archive = JobDatabaseWrapper.job_archive()
+        job_names = []
+        for job in job_archive:
+            if 'JobName' in job:
+                if job['JobName'] not in job_names:
+                    job_names.append(job['JobName'])
+
+        return job_names
+
+    @view_config(route_name='send_job', renderer='json', request_method='POST')
+    def send_job_dummy(self):
+        return dict(error='Unknown request {0}'.format(str(self._request.matchdict)))
+
+
