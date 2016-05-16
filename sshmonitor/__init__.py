@@ -6,6 +6,7 @@ from pyramid.config import Configurator
 from sqlalchemy import engine_from_config
 
 from filemonitor.filemonitor import FileMonitor
+from jobmanager.sshbasedjobmanager import SSHBasedJobManager
 from models import initialize_sql
 from ssh.ssh_connectionholder import SSHConnectionHolder
 from ssh.sshfilebrowser import SSHFileBrowser

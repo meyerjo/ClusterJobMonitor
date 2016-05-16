@@ -18,7 +18,7 @@ class ConfigurationView:
             projectname = self._request.registry.settings['projectname']
         else:
             projectname = 'ClusterManagement'
-        return dict(project=projectname)
+        return dict(project=projectname, error=None, userobjects=dict())
 
     @view_config(route_name='sshconfiguration', renderer='templates/configurationeditor.pt', request_method='POST')
     def ssh_configuration_view(self):
@@ -27,11 +27,11 @@ class ConfigurationView:
         else:
             projectname = 'ClusterManagement'
         if (self._request.params.get('password') != self._request.params.get('password_repeat')):
-            return dict(error='Passwords do not correspond', project=self._projectname)
+            return dict(error='Passwords do not correspond', project=self._projectname, userobjects=dict())
         if self._request.params.get('servername') is '':
-            return dict(error='Servername is not available', project=self._projectname)
+            return dict(error='Servername is not available', project=self._projectname, userobjects=dict())
         if self._request.params.get('username') is '':
-            return dict(error='Username is not available', project=self._projectname)
+            return dict(error='Username is not available', project=self._projectname, userobjects=dict())
         if self._request.params.get('portnumber') is '':
             portnumber = 22
         else:
@@ -51,12 +51,11 @@ class ConfigurationView:
                 with open(self._request.params['ssh.connection_params'], 'w+') as settings:
                     settings.write(json)
             except Exception as e:
-                return dict(project=self._projectname, error=str(e))
+                return dict(project=self._projectname, error=str(e), userobjects=obj)
         elif self._request.params.get('submit_button') == 'test':
             testresult = SSHTest.test(obj)
             if 'error' in testresult and testresult['error'] is not None:
-                return dict(project=projectname, error=testresult['error'])
+                return dict(project=projectname, error=testresult['error'], userobjects=obj)
         else:
-            return dict(project=projectname, error='Unknown submit button')
-
-        return dict(project=projectname, error=None)
+            return dict(project=projectname, error='Unknown submit button', userobjects=dict())
+        return dict(project=projectname, error=None, userobjects=obj)

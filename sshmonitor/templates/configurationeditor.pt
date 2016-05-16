@@ -38,7 +38,7 @@
     <script typ="text/javascript">
         $(document).ready(function() {
             $('.add_configuration').on('click', function() {
-                alert('test')
+                
             });
         });
     </script>
@@ -149,24 +149,34 @@
                                     <i class="fa fa-bar-chart-o fa-fw"></i> Configuration
                                 </div>
                                 <!-- /.panel-heading -->
-                                <div class="panel-body">
+                                <div class="panel-body"
                                     <form tal:attributes="action request.route_url('sshconfiguration')" method="POST">
                                         <div class="row">
                                             <div class="col-sm-3"><label for="servername">Server:</label></div>
-                                            <div class="col-sm-9"><input type="text" name="servername" placeholder="Serveraddress" /></div>
+                                            <div class="col-sm-9">
+                                                <input type="text" tal:attributes="value userobjects['server'] if 'server' in userobjects else ''" name="servername" placeholder="Serveraddress" />
+                                            </div>
                                         </div>
                                         <div class="row">
                                             <div class="col-sm-3"><label for="portnumber">Port:</label></div>
-                                            <div class="col-sm-9"><input type="number" min="0" max="65536" pattern="[0-9]{1,5}" title="Portnumber must be a number between 0 and 65536" name="portnumber" placeholder="Port" value="22"/></div>
+                                            <div class="col-sm-9">
+                                                <input type="number" tal:attributes="value userobjects['port'] if 'port'in userobjects else ''" min="0" max="65536" pattern="[0-9]{1,5}" title="Portnumber must be a number between 0 and 65536" name="portnumber" placeholder="Port" value="22"/>
+                                            </div>
                                         </div>
                                         <div class="row">
                                             <div class="col-sm-3"><label for="username">Username:</label></div>
-                                            <div class="col-sm-9"><input type="text" name="username" placeholder="Username" class="input-large"/></div>
+                                            <div class="col-sm-9">
+                                                <input type="text" tal:attributes="value userobjects['username'] if 'username' in userobjects else ''" name="username" placeholder="Username" class="input-large"/>
+                                            </div>
                                         </div>
                                         <div class="row">
                                             <div class="col-sm-3"><label for="password">Passwort:</label></div>
-                                            <div class="col-sm-4"><input type="password" name="password" placeholder="Passwort" class="input-large"/></div>
-                                            <div class="col-sm-4"><input type="password" name="password_repeat" placeholder="Repeat password" class="input-large"/></div>
+                                            <div class="col-sm-4">
+                                                <input type="password" name="password" placeholder="Passwort" class="input-large"/>
+                                            </div>
+                                            <div class="col-sm-4">
+                                                <input type="password" name="password_repeat" placeholder="Repeat password" class="input-large"/>
+                                            </div>
                                         </div>
                                         <button class="btn btn-success" type="submit" name="submit_button" value="save">Speichern</button>
                                         <button class="btn btn-primary" type="submit" name="submit_button" value="test">Test</button>
