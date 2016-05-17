@@ -20,10 +20,25 @@ class JobRequests():
             self._projectname = self._request.registry.settings['title']
         else:
             self._projectname = 'ClusterManagement'
-        self._coltitles = ['JobID', 'JobName', 'StartTime', 'SubmissionTime', 'CompletionTime', 'State', 'CompletionCode']
+        self._coltitles = ['JobID', 'JobName', 'StartTime', 'SubmissionTime',
+                           'CompletionTime', 'State', 'CompletionCode', 'AWDuration', 'ReqAWDuration', 'ReqProcs']
 
     def _get_current_jobs(self, jobmanager, coltitles):
-        return JobDatabaseWrapper.get_jobs(jobmanager, coltitles)
+        jobs = JobDatabaseWrapper.get_jobs(jobmanager, coltitles)
+        print(jobs)
+        new_job_obj = dict(joborder=jobs['joborder'], jobs=dict())
+        for order in jobs['joborder']:
+            if order not in jobs:
+                continue
+            current_header = jobs[order]['header']
+            new_job_obj['jobs'][order] = dict()
+            for job in jobs[order]['body']:
+                if job[current_header.index('JobName')] not in new_job_obj['jobs'][order]:
+                    new_job_obj['jobs'][order][job[current_header.index('JobName')]] = [dict(zip(current_header, job))]
+                else:
+                    new_job_obj['jobs'][order][job[current_header.index('JobName')]].append(dict(zip(current_header, job)))
+        print(new_job_obj)
+        return new_job_obj
 
     @view_config(route_name='jobs', renderer='templates/jobs.pt')
     def all_jobs(self):
@@ -202,10 +217,9 @@ class JobRequests():
         job_archive = JobDatabaseWrapper.job_archive()
         job_names = []
         for job in job_archive:
-            if 'JobName' in job:
-                if job['JobName'] not in job_names:
-                    job_names.append(job['JobName'])
-
+            if 'JobName' in job and 'IWD' in job:
+                if (job['JobName'], job['IWD']) not in job_names:
+                    job_names.append((job['JobName'], job['IWD']))
         return job_names
 
     @view_config(route_name='send_job', renderer='json', request_method='POST')
