@@ -257,11 +257,16 @@
         <div class="col-sm-8">
             <form tal:attributes="action request.route_url('cancel_job_basic')" method="POST">
                 <div class="row">
-                    <div class="col-sm-2">
-                        <span id="selectedjobs">0</span> Jobs selected
-                    </div>
-                    <div class="col-sm-2">
-                        <button type="submit" class="btn btn-warning .deletebutton">Delete</button>
+                    <div class="col-sm-12">
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <i class="fa fa-check"></i><i class="fa fa-hashtag"></i><span id="selectedjobs">0</span>
+                            </span>
+                            <div class="input-group-btn">
+                                <button type="submit" class="btn btn-warning .deletebutton">Delete</button>
+                            </div>
+                            <input type="text" disabled class="form-control" aria-label="...">
+                        </div>
                     </div>
                 </div>
                 <tal:block  tal:repeat="orderelement joborder">
@@ -311,14 +316,34 @@
                                         </tal:block>
                                         <div class="panel ${panelcolor}" tal:attributes="id row['JobID']">
                                             <div class="panel-heading">
-                                                <input type="checkbox" tal:attributes="name row['JobID']; value row['JobID']" tal:condition="python: orderelement != 'completed'"/>
-                                                    ${row['JobID']} <i class="fa fa-server"></i>
-                                                <span tal:condition="python: 'ReqProcs' in row">${row['ReqProcs']}</span>
-                                                <div class="pull-right">
-                                                    <a class="btn btn-default" title="Output" tal:attributes="href request.route_url('joboutput', jobid=row['JobID'])"><i class="fa fa-terminal"></i></a>
-                                                    <a class="btn btn-default" title="Details" tal:attributes="href request.route_url('job_details', jobid=row['JobID'])"><i class="fa fa-search-plus"></i></a>
-                                                    <a class="btn btn-danger" title="Cancel" tal:condition="python: orderelement != 'completed'" tal:attributes="href request.route_url('cancel_job', jobid=row['JobID'])"><i class="fa fa-ban"></i></a>
-                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-12">
+                                                        <div class="input-group">
+                                                            <span class="input-group-addon">
+                                                                <label>
+                                                                    <input type="checkbox" tal:attributes="name row['JobID']; value row['JobID']">
+                                                                        ${row['JobID']}
+                                                                </label>
+                                                            </span>
+                                                            <span class="input-group-addon">
+                                                                CPUs: <span tal:condition="python: 'ReqProcs' in row">${row['ReqProcs']}</span>
+                                                            </span>
+                                                            <input type="text" disabled class="form-control" aria-label="...">
+                                                            <div class="input-group-btn">
+                                                                <!-- Buttons -->
+                                                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action <span class="caret"></span></button>
+                                                                <ul class="dropdown-menu">
+                                                                    <li><a title="Output" tal:attributes="href request.route_url('joboutput', jobid=row['JobID'])">Show joboutput</a></li>
+                                                                    <li><a title="Details" tal:attributes="href request.route_url('job_details', jobid=row['JobID'])">Show details</a></li>
+                                                                    <li><a title="Cancel" tal:condition="python: orderelement != 'completed'" tal:attributes="href request.route_url('cancel_job', jobid=row['JobID'])">Cancel</a></li>
+                                                                </ul>
+                                                                <a class="btn btn-default" title="Output" tal:attributes="href request.route_url('joboutput', jobid=row['JobID'])"><i class="fa fa-terminal"></i></a>
+                                                                <a class="btn btn-default" title="Details" tal:attributes="href request.route_url('job_details', jobid=row['JobID'])"><i class="fa fa-search-plus"></i></a>
+                                                                <a class="btn btn-danger" title="Cancel" tal:condition="python: orderelement != 'completed'" tal:attributes="href request.route_url('cancel_job', jobid=row['JobID'])"><i class="fa fa-ban"></i></a>
+                                                            </div>
+                                                        </div><!-- /input-group -->
+                                                    </div><!-- /.col-lg-6 -->
+                                                </div><!-- /.row -->
                                             </div>
                                             <div class="panel-body">
                                                 <div class="row" tal:condition="python:('AWDuration' in row) and ('ReqAWDuration' in row)">
