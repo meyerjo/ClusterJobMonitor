@@ -54,21 +54,8 @@ class JobRequests():
         return {'project': self._projectname,
                 'jobs': jobs}
 
-    @view_config(route_name='cancel_job', renderer='templates/jobs.pt')
-    def cancel_job(self):
-        log = logging.getLogger(__name__)
-        cancel_jobid = self._request.matchdict['jobid']
-        log.info('Cancel Request for job: {0}'.format(cancel_jobid))
-        ssh_holder = self._request.registry.settings['ssh_holder']
-        ssh_jobmanager = SSHBasedJobManager(ssh_holder)
-        return_canceljob = ssh_jobmanager.cancel_job(cancel_jobid)
-        log.info(return_canceljob)
-
-        subreq = Request.blank(self._request.route_url('jobs'))
-        return self._request.invoke_subrequest(subreq)
-
     @view_config(route_name='cancel_job_basic', renderer='templates/jobs.pt', request_method='POST')
-    @view_config(route_name='cancel_job', renderer='json', request_method='POST', match_param='action=json')
+    @view_config(route_name='cancel_job', renderer='json', request_method='POST', match_param='jobid=json')
     def cancel_job_post(self):
         log = logging.getLogger(__name__)
         opts = self._request.params
@@ -80,12 +67,25 @@ class JobRequests():
                 #ssh_jobmanager = SSHBasedJobManager(ssh_holder)
                 #return_canceljob = ssh_jobmanager.cancel_job(opt)
                 #elements.append(return_canceljob)
-
-        if self._request.matched_route == 'cancel_job':
-            return dict(error='test', jobs=elements)
+        log.info(elements)
+        if self._request.matched_route.name == 'cancel_job':
+            return dict(error=None, jobs=elements)
         subreq = Request.blank(self._request.route_url('jobs'))
         return self._request.invoke_subrequest(subreq)
 
+
+    @view_config(route_name='cancel_job',  renderer='templates/jobs.pt')
+    def cancel_job(self):
+        log = logging.getLogger(__name__)
+        cancel_jobid = self._request.matchdict['jobid']
+        log.info('Cancel Request for job: {0}'.format(cancel_jobid))
+        ssh_holder = self._request.registry.settings['ssh_holder']
+        ssh_jobmanager = SSHBasedJobManager(ssh_holder)
+        return_canceljob = ssh_jobmanager.cancel_job(cancel_jobid)
+        log.info(return_canceljob)
+
+        subreq = Request.blank(self._request.route_url('jobs'))
+        return self._request.invoke_subrequest(subreq)
 
 
     @view_config(route_name='job_details', renderer='templates/jobs.pt')

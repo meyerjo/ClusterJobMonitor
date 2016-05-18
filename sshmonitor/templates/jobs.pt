@@ -82,13 +82,69 @@
                         });
             });
 
-            $('form button .deletejobs').on('click', function() {
+            $('form').submit(function( event ) {
                 event.preventDefault();
-                alert('really?')
+
+                // show the user a modal to confirm the selection
+                var data = $(this).serializeArray();
+                // get the selected checkboxes
+                var selected_jobs = $('form :checkbox:checked');
+
+                if ($(data).length == 0){ return }
+
+                var scriptnames = new Array();
+                $(selected_jobs).each(function(i, data) {
+                    var parentElement = $(data).closest('.jobname');
+                    var header = $(parentElement).find('.panel-heading.jobname');
+                    if ($(header).length == 1) {
+                        scriptnames.push($(header[0]).html())
+                    }
+                });
+
+                if ($(scriptnames).length != $(data).length) {
+                    console.log('houston')
+                }
+
+                var overall = $('<span>').html('Do you really want to cancel these jobs?<br/>');
+                $(selected_jobs).each(function(i, data) {
+                    var element =  $('<label>')
+                            .html(' JobID: ' + data['value'] + ' Scriptname: ' + $(scriptnames)[i]);
+
+
+                    var inp = $('<input>')
+                            .attr('type', 'checkbox')
+                            .attr('value', data['value'])
+                            .prop('checked', true)
+                            .prependTo(element);
+
+                    $(element).appendTo(overall);
+
+                });
+                var modalbody = $('#delete_confirmationmodal').find('.modal-body');
+                $(modalbody[0]).html(overall);
+                $('#delete_confirmationmodal').modal();
+
+                $('#delete_confirmationmodal .btn-primary').on('click', function () {
+                    console.log('send')
+                    $.ajax({
+                        url: '${request.route_url('cancel_job', jobid='json')}',
+                        data: data,
+                        method: 'POST'
+                    }).done(function(respond) {
+                        $('#delete_confirmationmodal').modal('hide');
+                    }).error(function(respond) {
+                        $(this).remove();
+                        $(this).closest('modal').find('modal-body')[0].html(respond);
+                    }).always(function(respond) {
+                        console.log(respond);
+                    });
+
+
+                });
             });
 
-            $('form:checkbox').on('checked', function () {
-                alert('test');
+            $('form :checkbox').on('change', function () {
+                $('#selectedjobs').html($('form :checkbox:checked').length);
             })
         });
     </script>
@@ -189,7 +245,7 @@
                         </div>
                     </div>
                 </div>
-                <a href="#">
+                <a href="#${element}">
                     <div class="panel-footer">
                     </div>
                 </a>
@@ -200,7 +256,14 @@
     <div class="row">
         <div class="col-sm-8">
             <form tal:attributes="action request.route_url('cancel_job_basic')" method="POST">
-                <button type="submit" class="btn btn-warning">Delete</button>
+                <div class="row">
+                    <div class="col-sm-2">
+                        <span id="selectedjobs">0</span> Jobs selected
+                    </div>
+                    <div class="col-sm-2">
+                        <button type="submit" class="btn btn-warning .deletebutton">Delete</button>
+                    </div>
+                </div>
                 <tal:block  tal:repeat="orderelement joborder">
                     <tal:block tal:define="global jobclass orderelement; global jobelements jobs['jobs'][orderelement]"></tal:block>
                     <tal:block tal:condition="python: orderelement == 'blocked'">
@@ -215,7 +278,7 @@
                     <tal:block tal:condition="python: orderelement == 'completed'">
                         <tal:block  tal:define="global classname 'panel-info'; global classicon 'fa-check'"></tal:block>
                     </tal:block>
-                    <div class="panel ${classname}">
+                    <div class="panel ${classname}" tal:attributes="id orderelement">
                         <tal:block tal:define="global elementcounter 0">
                             <tal:block tal:repeat="(key, val) jobelements.items()">
                                 <tal:block tal:define="global elementcounter elementcounter + len(val)">
@@ -227,8 +290,8 @@
                         </div>
                         <!-- /.panel-heading -->
                         <div class="panel-body">
-                            <div class="panel panel-default" tal:repeat="key jobelements.keys()">
-                                <div class="panel-heading" tal:content="key"></div>
+                            <div class="panel panel-default jobname" tal:repeat="key jobelements.keys()">
+                                <div class="panel-heading jobname" tal:content="key"></div>
                                 <div class="panel-body">
                                     <tal:block tal:repeat="row jobelements[key]">
                                         <tal:block tal:switch="python: ('CompletionCode' in row)">
@@ -248,20 +311,26 @@
                                         </tal:block>
                                         <div class="panel ${panelcolor}" tal:attributes="id row['JobID']">
                                             <div class="panel-heading">
-                                                <input type="checkbox" tal:attributes="name row['JobID']" tal:condition="python: orderelement != 'completed'"/>
+                                                <input type="checkbox" tal:attributes="name row['JobID']; value row['JobID']" tal:condition="python: orderelement != 'completed'"/>
                                                     ${row['JobID']} <i class="fa fa-server"></i>
                                                 <span tal:condition="python: 'ReqProcs' in row">${row['ReqProcs']}</span>
                                                 <div class="pull-right">
-                                                    <a tal:attributes="href request.route_url('joboutput', jobid=row['JobID'])"><i class="fa fa-terminal"></i> Output</a>
-                                                    <a tal:attributes="href request.route_url('job_details', jobid=row['JobID'])"><i class="fa fa-search-plus"></i> Details</a>
-                                                    <a  tal:condition="python: orderelement != 'completed'" tal:attributes="href request.route_url('cancel_job', jobid=row['JobID'])"><i class="fa fa-ban"></i> Delete</a>
+                                                    <a class="btn btn-default" title="Output" tal:attributes="href request.route_url('joboutput', jobid=row['JobID'])"><i class="fa fa-terminal"></i></a>
+                                                    <a class="btn btn-default" title="Details" tal:attributes="href request.route_url('job_details', jobid=row['JobID'])"><i class="fa fa-search-plus"></i></a>
+                                                    <a class="btn btn-danger" title="Cancel" tal:condition="python: orderelement != 'completed'" tal:attributes="href request.route_url('cancel_job', jobid=row['JobID'])"><i class="fa fa-ban"></i></a>
                                                 </div>
                                             </div>
                                             <div class="panel-body">
                                                 <div class="row" tal:condition="python:('AWDuration' in row) and ('ReqAWDuration' in row)">
                                                     <div class="col-sm-6">Progress:</div>
                                                     <div class="col-sm-6">
-                                                        <progress tal:attributes="value row['AWDuration']; max row['ReqAWDuration']"></progress>
+                                                        <div class="progress">
+                                                            <div class="progress-bar" role="progressbar"
+                                                                    tal:attributes="aria-valuenow row['AWDuration']; aria-valuemax row['ReqAWDuration']"
+                                                                 aria-valuemin="0" style="width: ${int((float(row['AWDuration'])*100/float(row['ReqAWDuration'])))}%;">
+                                                            ${int((float(row['AWDuration'])*100/float(row['ReqAWDuration']))*100)/100}%
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <tal:block tal:repeat="element ['SubmissionTime', 'StartTime', 'CompletionTime', 'ReqProcs', 'State', 'CompletionCode']">
@@ -405,6 +474,24 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="delete_confirmationmodal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title">Confirm: job cancelation</h4>
+                </div>
+                <div class="modal-body">
+                    <p>One fine body…</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Cancel jobs</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
 </div>
 </body>
 </html>
