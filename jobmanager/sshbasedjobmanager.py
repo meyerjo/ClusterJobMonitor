@@ -71,6 +71,7 @@ class SSHBasedJobManager(JobManager):
         log = logging.getLogger(__name__)
         log.debug('Checking job details for {0}'.format(jobid))
         output = self.ssh.send_command(cmd)
+        log.info(output['error'])
         if output['error'] is None:
             lines = output['stdoutstr']
             if lines == '':
@@ -79,8 +80,10 @@ class SSHBasedJobManager(JobManager):
                 xml_output = ET.fromstring(lines)
             except BaseException as e:
                 return dict(error=str(e))
+            log.info('Parsing succesful')
             jobs = xml_output.findall('job')
             outputattribs = None
+            log.info(len(jobs))
             if len(jobs) == 1:
                 req_node = jobs[0].findall('req')
                 outputattribs = jobs[0].attrib
@@ -90,6 +93,21 @@ class SSHBasedJobManager(JobManager):
                     if re.search('Time$', key) and re.search('[0-9]*', vals):
                         outputattribs[key] = '{0} ({1})'.format(vals,
                                                                 datetime.datetime.fromtimestamp(int(vals)).strftime('%Y-%m-%d %H:%M:%S'))
+
+                try:
+                    cmd = 'checkjob -v -v {0}'.format(jobid)
+                    outputdict = self.ssh.send_command(cmd)
+                    if outputdict['error'] is not None:
+                        log.info('Error during command {0} execution {1}'.format(cmd, outputdict['error']))
+                    else:
+                        stdout = outputdict['stdoutstr']
+                        m = re.search('EnvVariables:(.+)', stdout)
+                        if m:
+                            tmp = m.group(1).strip()
+                            outputattribs['EnvVariables'] = list(filter(None,tmp.split('\x1e')))
+                except BaseException as e:
+                    log.warning('Error during retrieval of environmental variables {0}',format(str(e)))
+
             output = outputattribs
         else:
             output = output['error']

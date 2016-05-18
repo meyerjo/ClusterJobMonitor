@@ -77,12 +77,17 @@ class JobDatabaseWrapper:
 
             if 'jobinfo' in jobs and jobs['jobinfo'] is not None:
                 obj = jsonpickle.decode(jobs['jobinfo'])
-                jobs.update(obj)
+                try:
+                    jobs.update(obj)
+                except BaseException as e:
+                    print(str(e))
 
             if 'jobdetails' in jobs and jobs['jobdetails'] is not None:
                 obj = jsonpickle.decode(jobs['jobdetails'])
-                jobs.update(obj)
-
+                try:
+                    jobs.update(obj)
+                except BaseException as e:
+                    print(str(e))
             jobs['number_of_joboutputs'] = len(job_outputs)
             jobs['joboutputs'] = []
             for outputs in job_outputs:
