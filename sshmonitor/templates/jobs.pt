@@ -109,28 +109,32 @@
                 $(selected_jobs).each(function(i, data) {
                     var element =  $('<label>')
                             .html(' JobID: ' + data['value'] + ' Scriptname: ' + $(scriptnames)[i]);
-
-
                     var inp = $('<input>')
                             .attr('type', 'checkbox')
                             .attr('value', data['value'])
                             .prop('checked', true)
                             .prependTo(element);
-
                     $(element).appendTo(overall);
-
                 });
                 var modalbody = $('#delete_confirmationmodal').find('.modal-body');
                 $(modalbody[0]).html(overall);
                 $('#delete_confirmationmodal').modal();
 
                 $('#delete_confirmationmodal .btn-primary').on('click', function () {
-                    console.log('send')
+                    console.log('send');
+                    var body = $(modalbody[0]);
+                    var selectedIds = new Array();
+                    console.log($(body));
+                    console.log($(body).find(':checked'));
+                    $(body).find(':checked').each(function(i, elem) {
+                        selectedIds.push([$(elem).attr('value'), $(elem).attr('value')])
+                    });
                     $.ajax({
                         url: '${request.route_url('cancel_job', jobid='json')}',
-                        data: data,
+                        data: {'jobids': selectedIds},
                         method: 'POST'
                     }).done(function(respond) {
+                        console.log(selectedIds)
                         $('#delete_confirmationmodal').modal('hide');
                     }).error(function(respond) {
                         $(this).remove();
@@ -138,8 +142,10 @@
                     }).always(function(respond) {
                         console.log(respond);
                     });
+                });
 
-
+                $('#delete_confirmationmodal div.modal-body :checkbox').on('change', function () {
+                    $('#' + $(this).val() + ' :checkbox').prop('checked', $(this).prop('checked'));
                 });
             });
 

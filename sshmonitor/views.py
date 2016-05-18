@@ -60,12 +60,13 @@ class JobRequests():
         log = logging.getLogger(__name__)
         opts = self._request.params
         elements = []
-        for opt in opts:
-            if re.search('^[0-9]+$', opt):
-                elements.append(opt)
+        opts = dict(opts)
+        for key, val in opts.items():
+            if re.search('^[0-9]+$', val):
+                elements.append(val)
                 #ssh_holder = self._request.registry.settings['ssh_holder']
                 #ssh_jobmanager = SSHBasedJobManager(ssh_holder)
-                #return_canceljob = ssh_jobmanager.cancel_job(opt)
+                #return_canceljob = ssh_jobmanager.cancel_job(val)
                 #elements.append(return_canceljob)
         log.info(elements)
         if self._request.matched_route.name == 'cancel_job':
