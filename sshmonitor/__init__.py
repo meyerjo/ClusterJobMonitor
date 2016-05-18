@@ -43,6 +43,7 @@ def main(global_config, **settings):
     config.add_static_view('static', 'static', cache_max_age=3600)
     config.add_route('job_details', '/jobdetails/{jobid}')
     config.add_route('cancel_job', '/canceljob/{jobid}')
+    config.add_route('cancel_job_basic', '/canceljob')
     config.add_route('joboutput', '/joboutput/{jobid}')
 
     config.add_route('send_job', '/sendjob/{action}')

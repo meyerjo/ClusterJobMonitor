@@ -1,4 +1,5 @@
 import logging
+import re
 
 import jsonpickle
 import sys
@@ -25,7 +26,6 @@ class JobRequests():
 
     def _get_current_jobs(self, jobmanager, coltitles):
         jobs = JobDatabaseWrapper.get_jobs(jobmanager, coltitles)
-        print(jobs)
         new_job_obj = dict(joborder=jobs['joborder'], jobs=dict())
         for order in jobs['joborder']:
             if order not in jobs:
@@ -37,7 +37,6 @@ class JobRequests():
                     new_job_obj['jobs'][order][job[current_header.index('JobName')]] = [dict(zip(current_header, job))]
                 else:
                     new_job_obj['jobs'][order][job[current_header.index('JobName')]].append(dict(zip(current_header, job)))
-        print(new_job_obj)
         return new_job_obj
 
     @view_config(route_name='jobs', renderer='templates/jobs.pt')
@@ -65,8 +64,29 @@ class JobRequests():
         return_canceljob = ssh_jobmanager.cancel_job(cancel_jobid)
         log.info(return_canceljob)
 
-        jobs = self._get_current_jobs(ssh_jobmanager, self._coltitles)
-        return {'project': self._projectname, 'jobs': jobs}
+        subreq = Request.blank(self._request.route_url('jobs'))
+        return self._request.invoke_subrequest(subreq)
+
+    @view_config(route_name='cancel_job_basic', renderer='templates/jobs.pt', request_method='POST')
+    @view_config(route_name='cancel_job', renderer='json', request_method='POST', match_param='action=json')
+    def cancel_job_post(self):
+        log = logging.getLogger(__name__)
+        opts = self._request.params
+        elements = []
+        for opt in opts:
+            if re.search('^[0-9]+$', opt):
+                elements.append(opt)
+                #ssh_holder = self._request.registry.settings['ssh_holder']
+                #ssh_jobmanager = SSHBasedJobManager(ssh_holder)
+                #return_canceljob = ssh_jobmanager.cancel_job(opt)
+                #elements.append(return_canceljob)
+
+        if self._request.matched_route == 'cancel_job':
+            return dict(error='test', jobs=elements)
+        subreq = Request.blank(self._request.route_url('jobs'))
+        return self._request.invoke_subrequest(subreq)
+
+
 
     @view_config(route_name='job_details', renderer='templates/jobs.pt')
     def job_details(self):
@@ -183,6 +203,9 @@ class JobRequests():
             config_objects['verbose'] = False
             config_objects['nodetype'] = 'singlenode'
             config_objects['mailnotification'] = False
+            obj = jsonpickle.decode(config_objects['scriptname'])
+            config_objects['scriptname'] = obj['scriptname']
+            config_objects['path_to_script'] = obj['scriptpath']
 
             key_names_to_convert = ['memory', 'nodes', 'ppn']
             for key in key_names_to_convert:
@@ -199,6 +222,7 @@ class JobRequests():
             stmt = JobSubmitStatement()
             stmt.set_config(config_objects)
             cmds = stmt.make()
+            cmds = ['cd {0}; {1}'.format(config_objects['path_to_script'], cmd) for cmd in cmds]
             return dict(error=None, commands=cmds)
         except BaseException as e:
             log.error(str(e))
