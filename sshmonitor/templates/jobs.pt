@@ -31,6 +31,12 @@
     <!-- Morris Charts CSS -->
     <link href="${request.static_url('sshmonitor:static/bower_components/morrisjs/morris.css')}" rel="stylesheet">
 
+
+    <link href="${request.static_url('sshmonitor:static/dist/jsoneditor.min.css')}" rel="stylesheet">
+
+    <script src="${request.static_url('sshmonitor:static/dist/jsoneditor.min.js')}"></script>
+
+
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
     <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
@@ -44,43 +50,74 @@
     </style>
     <script type="text/javascript">
         $(document).ready(function () {
+            $.ajax({
+                url: '${request.route_url('send_job', action='scripts')}'
+            }).done(function(data) {
+                $(data).each(function (i, element) {
+                    $('form .scriptselection').append($('<option>', {
+                        text: element[0],
+                        value: JSON.stringify({'scriptpath': element[1], 'scriptname': element[0]})
+                    }));
+                });
+            });
 
-            $.ajax({url: '${request.route_url('send_job', action='scripts')}'})
-                    .done(function(data) {
-                        $(data).each(function (i, element) {
-                            $('form .scriptselection').append($('<option>', {
-                                text: element[0],
-                                value: JSON.stringify({'scriptpath': element[1], 'scriptname': element[0]})
-                            }))
-                        })
-                    });
 
-
-            $('.test_commands').on('click', function () {
+            $('.test_commands').unbind().on('click', function () {
                 event.preventDefault();
                 var parentForm = $(this).closest('form');
                 var data = $(parentForm).serializeArray();
+
+                $(data).each(function(i, item) {
+                    if (item['name'] == 'walltime') {
+                        item['value'] = '01:00:00';
+                        $(parentForm).find('input[name=\'walltime\']').val('01:00:00');
+                    }
+                });
 
                 $.ajax({
                     url: '${request.route_url('send_job', action='test')}',
                     method: "POST",
                     data: data
-                })
-                        .done(function (data) {
-                            if (data['error'] != null) {
-                                $('.errormessage').css('display', 'block');
-                                $('.errormessage').html(data['error'])
-                            } else {
-                                var d = '';
-                                $(data['commands']).each(function(i, elem) {
-                                    d += elem + '<br/>';
-                                });
-                                $('.errormessage').css('display', 'none');
-                                $('#myModal .modal-body').html(d);
-                                $('#myModal').modal('show');
-                            }
+                }).done(function (data) {
+                    if (data['error'] != null) {
+                        $('.errormessage').css('display', 'block');
+                        $('.errormessage').html(data['error'])
+                    } else {
+                        var element = $('<span>').html('Generated the following commands:<br/>');
+                        $(data['commands']).each(function(i, elem) {
+                            var label = $('<label>').html(elem);
+                            var inp = $('<input>')
+                                    .attr('type', 'checkbox')
+                                    .attr('value', i)
+                                    .attr('name', 'command')
+                                    .prop('checked', true);
+                            $(inp).prependTo(label);
+                            $(label).appendTo(element)
                         });
+
+                        $('#myModal .modal-footer button[name=\'sendcommands\']').unbind().on('click', function() {
+                            alert('not yet implemented');
+                            var selected_ids = $('#myModal .modal-body input[name=\'command\']:checked').map(function() { return parseInt($(this).val())}).get();
+
+                            var data = $('.test_commands').closest('form').serializeArray()
+                            data.push(new Object({'name': 'selectedcommands', 'value': selected_ids}));
+                            $.ajax({
+                                url: '${request.route_url('send_job', action='send')}',
+                                method: 'POST',
+                                data: data
+                            }).done(function (response) {
+
+                                console.log(response);
+                            });
+                        });
+
+                        $('.errormessage').css('display', 'none');
+                        $('#myModal .modal-body').html(element);
+                        $('#myModal').modal('show');
+                    }
+                });
             });
+
 
             $('form').submit(function( event ) {
                 event.preventDefault();
@@ -112,8 +149,8 @@
                     var inp = $('<input>')
                             .attr('type', 'checkbox')
                             .attr('value', data['value'])
-                            .prop('checked', true)
-                            .prependTo(element);
+                            .prop('checked', true);
+                    $(inp).prependTo(element);
                     $(element).appendTo(overall);
                 });
                 var modalbody = $('#delete_confirmationmodal').find('.modal-body');
@@ -356,11 +393,28 @@
                                                     <div class="col-sm-6">Progress:</div>
                                                     <div class="col-sm-6">
                                                         <div class="progress">
-                                                            <div class="progress-bar" role="progressbar"
-                                                                    tal:attributes="aria-valuenow row['AWDuration']; aria-valuemax row['ReqAWDuration']"
-                                                                 aria-valuemin="0" style="width: ${int((float(row['AWDuration'])*100/float(row['ReqAWDuration'])))}%;">
-                                                            ${int((float(row['AWDuration'])*100/float(row['ReqAWDuration']))*100)/100}%
-                                                            </div>
+                                                            <tal:block tal:define="progress min(int((float(row['AWDuration'])*100/float(row['ReqAWDuration']))), 100);
+                                                                    resttime_min float((float(row['ReqAWDuration']) - float(row['AWDuration'])) / 60);
+                                                                            resttime_h resttime_min/60">
+                                                                <div class="progress-bar" role="progressbar"
+                                                                        tal:attributes="aria-valuenow row['AWDuration']; aria-valuemax row['ReqAWDuration']"
+                                                                     aria-valuemin="0" style="width: ${int((float(row['AWDuration'])*100/float(row['ReqAWDuration'])))}%;">
+                                                                ${progress}%
+                                                                </div>
+                                                                <div class="progress-bar progress-bar-info" role="progressbar"
+                                                                        tal:attributes="aria-valuenow row['AWDuration']; aria-valuemax row['ReqAWDuration']"
+                                                                     aria-valuemin="0" style="width: ${100-progress}%;">
+                                                                    <tal:block tal:condition="progress <= 95">
+                                                                        <span tal:condition="progress <= 90">
+                                                                            Restdauer:
+                                                                        </span>
+                                                                        <tal:block tal:switch="python: resttime_h <= 1">
+                                                                            <span tal:case="True">${int(resttime_min)} min</span>
+                                                                            <span tal:case="False">${int(resttime_h//1)}:${str(int(resttime_min-(resttime_h//1)*60)).zfill(2)} h</span>
+                                                                        </tal:block>
+                                                                    </tal:block>
+                                                                </div>
+                                                            </tal:block>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -409,60 +463,56 @@
             <a tal:attributes="href request.route_url('jobarchive')" class="btn btn-link">Archive</a>
         </div>
         <div class="col-sm-4">
-            <div class="panel panel-default">
+            <div class="panel panel-default" id="jobsubmissionpanel">
                 <div class="panel-heading">
                     <i class="fa fa-bell fa-fw"></i> New job submission
                 </div>
                 <!-- /.panel-heading -->
                 <div class="panel-body">
                     <div class="row error">
-                        <div class="col-sm-12 errormessage"> Test </div>
+                        <div class="col-sm-12 errormessage">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    Information
+                                </div>
+                                <div class="panel-body">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <form method="POST" tal:attributes="action request.route_url('send_job', action='send')">
                         <div class="row">
-                            <div class="col-sm-6">
-                                Cluster:
-                            </div>
+                            <div class="col-sm-6">Cluster:</div>
                             <div class="col-sm-6">
                                 not yet implemented
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-sm-6">
-                                Script:
-                            </div>
+                            <div class="col-sm-6">Script:</div>
                             <div class="col-sm-6">
                                 <select name="scriptname" class="scriptselection" style="width:200px;"></select>
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-sm-6">
-                                Scriptvariable:
-                            </div>
+                            <div class="col-sm-6">Scriptvariable:</div>
                             <div class="col-sm-6">
                                 <input type="text" name="scriptvariables" value="VP01" class="input-medium"/>
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-sm-6">
-                                Nodes
-                            </div>
+                            <div class="col-sm-6">Nodes:</div>
                             <div class="col-sm-6">
                                 <input type="number" min="1" max="64" pattern="[0-9]{1,2}" title="Nodes" name="nodes" value="1"/>
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-sm-6">
-                                Procs:
-                            </div>
+                            <div class="col-sm-6">Procs:</div>
                             <div class="col-sm-6">
                                 <input type="number" min="1" max="64" pattern="[0-9]{1,2}" title="Procs" name="ppn" value="4"/>
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-sm-6">
-                                Memory per Proc:
-                            </div>
+                            <div class="col-sm-6">Memory per Proc:</div>
                             <div class="col-sm-6">
                                 <input type="number" min="1" max="64" pattern="[0-9]{1,2}" title="Memory" name="pmem" value="16"/>
                             </div>
@@ -475,7 +525,6 @@
                                 <input type="text" pattern="([0-9]{1,2}:[0-9]{2}:[0-9]{2}|[0-6]{1,2}h|[0-9]{1,2}min)" required placeholder="HH:mm:ss" title="Walltime" name="walltime"/>
                             </div>
                         </div>
-
                         <div class="row">
                             <div class="col-sm-6">
                                 <button type="submit" class="btn btn-success" name="send_command">Send</button>
@@ -485,6 +534,13 @@
                             </div>
                         </div>
                     </form>
+                </div>
+            </div>
+            <div class="panel panel-default" id="variables">
+                <div class="panel-heading"><i class="fa fa-bell fa-fw"></i> Define variables</div>
+                <!-- /.panel-heading -->
+                <div class="panel-body">
+                    <div id="jsoneditor"></div>
                 </div>
             </div>
         </div>
@@ -500,6 +556,7 @@
                 </div>
                 <div class="modal-body"></div>
                 <div class="modal-footer">
+                    <button type="button" name="sendcommands" class="btn btn-primary">Send commands</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                 </div>
             </div>
@@ -524,5 +581,26 @@
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
 </div>
+
+    <script>
+        // create the editor
+        var container = document.getElementById("jsoneditor");
+        var options = {};
+        var editor = new JSONEditor(container, options);
+
+        // set json
+        var json = {
+            "Array": [1, 2, 3],
+            "Boolean": true,
+            "Null": null,
+            "Number": 123,
+            "Object": {"a": "b", "c": "d"},
+            "String": "Hello World"
+        };
+        editor.set(json);
+
+        // get json
+        var json = editor.get();
+    </script>
 </body>
 </html>
