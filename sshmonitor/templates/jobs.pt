@@ -282,23 +282,27 @@
                 var json = window.editor.get();
                 var keynames = Object.keys(json);
 
-                // convert everything to arrays
-                $.each(json, function(key, value){
-                    if (!Array.isArray(value)) {
-                        json[key] = [JSON.stringify(value)];
-                    }
-                });
 
-                var object_array = [];
-                $.each(json, function(key, value ) {
-                    object_array.push(value);
-                });
-                window.objectarray = object_array;
 
-                var all_combinations = allCases(object_array, keynames);
-                $('[name=\'scriptvariables\']').val(JSON.stringify(all_combinations));
 
-                alert('Generated: ' + all_combinations.length+ ' combinations')
+                if (Array.isArray(json)) {
+                    $('[name=\'scriptvariables\']').val(JSON.stringify(json));
+                } else {
+                    // convert everything to arrays
+                    $.each(json, function(key, value){
+                        if (!Array.isArray(value)) {
+                            json[key] = [JSON.stringify(value)];
+                        }
+                    });
+                    var object_array = [];
+                    $.each(json, function(key, value ) {
+                        object_array.push(value);
+                    });
+                    var all_combinations = allCases(object_array, keynames);
+                    $('[name=\'scriptvariables\']').val(JSON.stringify(all_combinations));
+                    alert('Generated: ' + all_combinations.length+ ' combinations')
+                }
+
 
             })
         });
@@ -665,7 +669,7 @@
                         </select>
                     </div>
 
-                    <div id="jsoneditor"></div>
+                    <div id="jsoneditor" style="height: 300px;"></div>
 
                     <div class="row">
                         <label class="col-sm-6" for="new_variablename">Variablename:</label>
@@ -751,12 +755,7 @@
     window.editor = new JSONEditor(container, options);
 
     // set json
-    var json = {
-        "Array": [1, 2, 3],
-        "Arrasdy": [123121, 2312, 3123123, 123123],
-        "Arrasdasdy": [1231231121, 2123312, 312312231233, 121312323123, 12, 3, 23, 41, 213],
-        "Boolean": true
-    };
+    var json = {};
     editor.set(json);
 
     // get json
