@@ -49,6 +49,69 @@
         }
     </style>
     <script type="text/javascript">
+
+        /**
+         * Find a JSONEditor instance from it's container element or id
+         * @param {string | Element} selector  A query selector id like '#myEditor'
+         *                                     or a DOM element
+         * @return {JSONEditor | null} Returns the created JSONEditor, or null otherwise.
+         */
+        function findJSONEditor (selector) {
+            var container = (typeof selector === 'string')
+                    ? document.querySelector(selector)
+                    : selector;
+
+            return container && container.jsoneditor || null;
+        }
+
+        /**
+         * Overwrites obj1's values with obj2's and adds obj2's if non existent in obj1
+         * @param obj1
+         * @param obj2
+         * @returns obj3 a new object based on obj1 and obj2
+         */
+        function merge_options(obj1,obj2){
+            var obj3 = {};
+            for (var attrname in obj1) { obj3[attrname] = obj1[attrname]; }
+            for (var attrname in obj2) { obj3[attrname] = obj2[attrname]; }
+            return obj3;
+        }
+
+        function allCases(elements, fieldnames) {
+            var results = [];
+            if (elements.length === 0) {
+                return {};
+            } else if (elements.length === 1) {
+                var fieldname = fieldnames[0];
+                var element = elements[0];
+
+                var results = [];
+                $.each(element, function(i, item) {
+                    var obj = {};
+                    obj[fieldname] = item;
+                    results.push(obj)
+                });
+                return results;
+            }
+            $.each(elements[0], function(i, item) {
+                var current_label = fieldnames[0];
+                var obj = {};
+                obj[current_label] = item;
+
+                var rest_cases = allCases(elements.slice(1), fieldnames.slice(1));
+                if (Array.isArray(rest_cases)) {
+                    $.each(rest_cases, function(new_element_id, new_element) {
+                        new_obj = merge_options(obj, new_element);
+                        results.push(new_obj);
+                    });
+                } else {
+                    new_obj = merge_options(obj, rest_cases);
+                    results.push(new_obj);
+                }
+            });
+            return results;
+        }
+
         $(document).ready(function () {
             $.ajax({
                 url: '${request.route_url('send_job', action='scripts')}'
@@ -59,6 +122,31 @@
                         value: JSON.stringify({'scriptpath': element[1], 'scriptname': element[0]})
                     }));
                 });
+            });
+
+            $('[name=\'addvariabletoenvironment\']').on('click', function() {
+                var json = window.editor.get();
+                var parent = $(this).closest('.panel-body');
+
+                var new_variablename = $('#new_variablename').val()
+                if (new_variablename == '') {
+                    console.log('Name is not acquired')
+                    return;
+                }
+                var mininteger = $(parent).find('[name=\'mininteger\']').val();
+                var maxinteger = $(parent).find('[name=\'maxinteger\']').val();
+
+                if (mininteger >= maxinteger) {
+                    console.log('Min-Integer can not be smaller than max-integer')
+                    return;
+                }
+
+                var tmp = [];
+                for (var i = mininteger; i < maxinteger; i++) {
+                    tmp.push(i);
+                }
+                json[new_variablename] = tmp;
+                window.editor.set(json);
             });
 
 
@@ -188,6 +276,30 @@
 
             $('form :checkbox').on('change', function () {
                 $('#selectedjobs').html($('form :checkbox:checked').length);
+            });
+
+            $('[name=\'sendvarstojob\']').on('click', function () {
+                var json = window.editor.get();
+                var keynames = Object.keys(json);
+
+                // convert everything to arrays
+                $.each(json, function(key, value){
+                    if (!Array.isArray(value)) {
+                        json[key] = [JSON.stringify(value)];
+                    }
+                });
+
+                var object_array = [];
+                $.each(json, function(key, value ) {
+                    object_array.push(value);
+                });
+                window.objectarray = object_array;
+
+                var all_combinations = allCases(object_array, keynames);
+                $('[name=\'scriptvariables\']').val(JSON.stringify(all_combinations));
+
+                alert('Generated: ' + all_combinations.length+ ' combinations')
+
             })
         });
     </script>
@@ -481,50 +593,56 @@
                         </div>
                     </div>
                     <form method="POST" tal:attributes="action request.route_url('send_job', action='send')">
-                        <div class="row">
-                            <div class="col-sm-6">Cluster:</div>
-                            <div class="col-sm-6">
-                                not yet implemented
+
+                            <div class="form-group">
+                                <label for="environment">Select environment:
+                                    <select class="form-control" id="environment" name="environmentvariables">
+                                        <option>New one</option>
+                                    </select>
+                                </label>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-6">Script:</div>
-                            <div class="col-sm-6">
-                                <select name="scriptname" class="scriptselection" style="width:200px;"></select>
+
+                            <div class="form-group">
+                                <label for="scriptname">
+                                    Script:
+                                    <select id="scriptname" name="scriptname" class="form-control scriptselection" style="width:200px;"></select>
+                                </label>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-6">Scriptvariable:</div>
-                            <div class="col-sm-6">
-                                <input type="text" name="scriptvariables" value="VP01" class="input-medium"/>
+
+                            <div class="form-group">
+                                <label for="scriptvariables">
+                                    Scriptvariable:
+                                     <input type="text" name="scriptvariables" id="scriptvariables" value="VP01" class="input-medium"/>
+                                </label>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-6">Nodes:</div>
-                            <div class="col-sm-6">
-                                <input type="number" min="1" max="64" pattern="[0-9]{1,2}" title="Nodes" name="nodes" value="1"/>
+
+                            <div class="form-group">
+                                <label for="nodes" class="col-sm-6">
+                                    Nodes:</label>
+                                     <input type="number" min="1" class="col-sm-6" max="64" pattern="[0-9]{1,2}" id="nodes" title="Nodes" name="nodes" value="1"/>
+
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-6">Procs:</div>
-                            <div class="col-sm-6">
-                                <input type="number" min="1" max="64" pattern="[0-9]{1,2}" title="Procs" name="ppn" value="4"/>
+
+                            <div class="form-group">
+                                <label for="ppn" class="col-sm-6">PPN:</label>
+                                <input type="number" min="1" max="64" class="col-sm-6" pattern="[0-9]{1,2}" id="ppn" title="Procs" name="ppn" value="4"/>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-6">Memory per Proc:</div>
-                            <div class="col-sm-6">
-                                <input type="number" min="1" max="64" pattern="[0-9]{1,2}" title="Memory" name="pmem" value="16"/>
+
+                            <div class="form-group">
+                                <label for="pmem" class="col-sm-6">
+                                    Memory:</label>
+                                <input type="number" class="col-sm-6" min="1" max="64" pattern="[0-9]{1,2}" title="Memory" id="pmem" name="pmem" value="16"/>
+
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-6">
-                                Walltime:
+
+                            <div class="form-group">
+                                <label for="walltime" class="col-sm-6">
+                                    Walltime:</label>
+                                <input type="text" class="col-sm-6" pattern="([0-9]{1,2}:[0-9]{2}:[0-9]{2}|[0-6]{1,2}h|[0-9]{1,2}min)" required placeholder="HH:mm:ss" id="walltime" title="Walltime" name="walltime"/>
+
                             </div>
-                            <div class="col-sm-6">
-                                <input type="text" pattern="([0-9]{1,2}:[0-9]{2}:[0-9]{2}|[0-6]{1,2}h|[0-9]{1,2}min)" required placeholder="HH:mm:ss" title="Walltime" name="walltime"/>
-                            </div>
-                        </div>
+
+
                         <div class="row">
                             <div class="col-sm-6">
                                 <button type="submit" class="btn btn-success" name="send_command">Send</button>
@@ -540,7 +658,51 @@
                 <div class="panel-heading"><i class="fa fa-bell fa-fw"></i> Define variables</div>
                 <!-- /.panel-heading -->
                 <div class="panel-body">
+                    <div class="form-group">
+                        <label for="environment">Select environment:</label>
+                        <select class="form-control" id="environment" name="environmentvariables">
+                            <option>New one</option>
+                        </select>
+                    </div>
+
                     <div id="jsoneditor"></div>
+
+                    <div class="row">
+                        <label class="col-sm-6" for="new_variablename">Variablename:</label>
+                        <input type="text" id="new_variablename" name="new_variablename" class="input-medium"/>
+                    </div>
+
+                    <div class="row">
+                        <label for="integermin" class="col-sm-6">
+                            Integers:
+                        </label>
+                        <div class="col-sm-6">
+                            <input type="number" id="integermin" title="Min" name="mininteger" value="0" class="input-medium"/>
+                            <input type="number" id="integermax" title="Min" name="maxinteger" value="0" class="input-medium"/>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <button class="btn btn-primary" name="addvariabletoenvironment">Add</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <button class="btn btn-primary" name="sendvarstojob">Send to current job</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <button class="btn btn-success" name="savevarenvironemnt">Save environment</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -582,25 +744,23 @@
     </div><!-- /.modal -->
 </div>
 
-    <script>
-        // create the editor
-        var container = document.getElementById("jsoneditor");
-        var options = {};
-        var editor = new JSONEditor(container, options);
+<script>
+    // create the editor
+    var container = document.getElementById("jsoneditor");
+    var options = {};
+    window.editor = new JSONEditor(container, options);
 
-        // set json
-        var json = {
-            "Array": [1, 2, 3],
-            "Boolean": true,
-            "Null": null,
-            "Number": 123,
-            "Object": {"a": "b", "c": "d"},
-            "String": "Hello World"
-        };
-        editor.set(json);
+    // set json
+    var json = {
+        "Array": [1, 2, 3],
+        "Arrasdy": [123121, 2312, 3123123, 123123],
+        "Arrasdasdy": [1231231121, 2123312, 312312231233, 121312323123, 12, 3, 23, 41, 213],
+        "Boolean": true
+    };
+    editor.set(json);
 
-        // get json
-        var json = editor.get();
-    </script>
+    // get json
+    var json = editor.get();
+</script>
 </body>
 </html>

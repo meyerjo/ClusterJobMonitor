@@ -219,10 +219,16 @@ class JobRequests():
         except BaseException as e:
             log.error(str(e))
             return dict(error=str(e), commands=None)
+        cmds = None
         try:
             stmt = JobSubmitStatement()
             stmt.set_config(config_objects)
             cmds = stmt.make()
+        except BaseException as e:
+            log.error(str(e))
+            return dict(error=str(e), commands=None)
+        try:
+            log.info(cmds)
             cmds = ['cd {0}; {1}'.format(config_objects['path_to_script'], cmd) for cmd in cmds]
             return dict(error=None, commands=cmds)
         except BaseException as e:

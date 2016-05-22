@@ -107,12 +107,32 @@ class JobSubmitStatement():
             return False
 
     def _parse_single_variable(self, variable):
-        """Generate single variable option for msub command"""
-        if re.search('=', variable):
-            # TODO: check if this is valid
-           return '-v {0}'.format(variable)
+        """
+        Generate single variable option for msub command
+
+        :param variable: String or dictionary of variables
+        """
+        def parse_string(variable):
+            assert(isinstance(variable, str))
+            if re.search('=', variable):
+                # TODO: check if this is valid
+               return '-v {0}'.format(variable)
+            else:
+                return '-v SCRIPT_FLAGS="{0}"'.format(variable)
+        def parse_dict(variable):
+            assert(isinstance(variable, dict))
+            tuples = []
+            for (key, val) in variable.items():
+                tuples.append('{0}={1}'.format(str(key), str(val)))
+            return '-v {0}'.format(','.join(tuples))
+        log = logging.getLogger(__name__)
+        if isinstance(variable, str):
+            return parse_string(variable)
+        elif isinstance(variable, dict):
+            return parse_dict(variable)
         else:
-            return '-v SCRIPT_FLAGS="{0}"'.format(variable)
+            log.error('Type of variable is not known. Type: {0} Variable {1}'.format(type(variable), str(variable)))
+            return ''
 
     def _get_variables(self):
         variables = ['']
@@ -134,7 +154,6 @@ class JobSubmitStatement():
                         varlist = json.loads(scriptvariables)
                     except ImportError as e:
                         log.warning('Problem parsing script-variables from json: {0}'.format(str(e)))
-
                     if isinstance(varlist, list):
                         for l in varlist:
                             variables.append(self._parse_single_variable(l))
@@ -174,12 +193,17 @@ class JobSubmitStatement():
         variables = self._get_variables()
         commands = []
         for variable in variables:
-            command = 'msub {mailsettings} {queue} {resources} {scriptvariable} {scriptname}'.format(**{'queue': queue,
-                                                                            'resources': resources,
-                                                                            'mailsettings': mailsettings,
-                                                                            'scriptname': self._config['scriptname'],
-                                                                            'scriptvariable': variable})
-            commands.append(command)
+            try:
+                command = 'msub {mailsettings} {queue} {resources} {scriptvariable} {scriptname}'.format(**{'queue': queue,
+                                                                                'resources': resources,
+                                                                                'mailsettings': mailsettings,
+                                                                                'scriptname': self._config['scriptname'],
+                                                                                'scriptvariable': variable})
+                commands.append(command)
+                log.info(command)
+
+            except BaseException as e:
+                log.error('Error during command creation: {0}'.format(str(e)))
         return commands
 
 if __name__ == '__main__':
