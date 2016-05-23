@@ -43,74 +43,14 @@
     <script src="//oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
     <![endif]-->
 
+    <script src="${request.static_url('sshmonitor:static/js/job_submission.js')}"></script>
+
     <style>
         .error {
             display:none;
         }
     </style>
     <script type="text/javascript">
-
-        /**
-         * Find a JSONEditor instance from it's container element or id
-         * @param {string | Element} selector  A query selector id like '#myEditor'
-         *                                     or a DOM element
-         * @return {JSONEditor | null} Returns the created JSONEditor, or null otherwise.
-         */
-        function findJSONEditor (selector) {
-            var container = (typeof selector === 'string')
-                    ? document.querySelector(selector)
-                    : selector;
-
-            return container && container.jsoneditor || null;
-        }
-
-        /**
-         * Overwrites obj1's values with obj2's and adds obj2's if non existent in obj1
-         * @param obj1
-         * @param obj2
-         * @returns obj3 a new object based on obj1 and obj2
-         */
-        function merge_options(obj1,obj2){
-            var obj3 = {};
-            for (var attrname in obj1) { obj3[attrname] = obj1[attrname]; }
-            for (var attrname in obj2) { obj3[attrname] = obj2[attrname]; }
-            return obj3;
-        }
-
-        function allCases(elements, fieldnames) {
-            var results = [];
-            if (elements.length === 0) {
-                return {};
-            } else if (elements.length === 1) {
-                var fieldname = fieldnames[0];
-                var element = elements[0];
-
-                var results = [];
-                $.each(element, function(i, item) {
-                    var obj = {};
-                    obj[fieldname] = item;
-                    results.push(obj)
-                });
-                return results;
-            }
-            $.each(elements[0], function(i, item) {
-                var current_label = fieldnames[0];
-                var obj = {};
-                obj[current_label] = item;
-
-                var rest_cases = allCases(elements.slice(1), fieldnames.slice(1));
-                if (Array.isArray(rest_cases)) {
-                    $.each(rest_cases, function(new_element_id, new_element) {
-                        new_obj = merge_options(obj, new_element);
-                        results.push(new_obj);
-                    });
-                } else {
-                    new_obj = merge_options(obj, rest_cases);
-                    results.push(new_obj);
-                }
-            });
-            return results;
-        }
 
         $(document).ready(function () {
             $.ajax({
@@ -150,7 +90,7 @@
             });
 
 
-            $('.test_commands').unbind().on('click', function () {
+            $('form .test_commands').unbind().on('click', function () {
                 event.preventDefault();
                 var parentForm = $(this).closest('form');
                 var data = $(parentForm).serializeArray();
@@ -207,7 +147,7 @@
             });
 
 
-            $('form').submit(function( event ) {
+            $('form.form_canceljob').submit(function( event ) {
                 event.preventDefault();
 
                 // show the user a modal to confirm the selection
@@ -227,7 +167,8 @@
                 });
 
                 if ($(scriptnames).length != $(data).length) {
-                    console.log('houston')
+                    console.log('Number of scriptnames doesnt match data')
+                    return
                 }
 
                 var overall = $('<span>').html('Do you really want to cancel these jobs?<br/>');
@@ -249,8 +190,6 @@
                     console.log('send');
                     var body = $(modalbody[0]);
                     var selectedIds = new Array();
-                    console.log($(body));
-                    console.log($(body).find(':checked'));
                     $(body).find(':checked').each(function(i, elem) {
                         selectedIds.push([$(elem).attr('value'), $(elem).attr('value')])
                     });
@@ -282,9 +221,6 @@
                 var json = window.editor.get();
                 var keynames = Object.keys(json);
 
-
-
-
                 if (Array.isArray(json)) {
                     $('[name=\'scriptvariables\']').val(JSON.stringify(json));
                 } else {
@@ -302,8 +238,6 @@
                     $('[name=\'scriptvariables\']').val(JSON.stringify(all_combinations));
                     alert('Generated: ' + all_combinations.length+ ' combinations')
                 }
-
-
             })
         });
     </script>
@@ -414,7 +348,7 @@
 
     <div class="row">
         <div class="col-sm-8">
-            <form tal:attributes="action request.route_url('cancel_job_basic')" method="POST">
+            <form class="form_canceljob" tal:attributes="action request.route_url('cancel_job_basic')" method="POST">
                 <div class="row">
                     <div class="col-sm-12">
                         <div class="input-group">
