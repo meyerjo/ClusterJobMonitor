@@ -49,6 +49,14 @@
         .error {
             display:none;
         }
+
+        .selectiontype {
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
     </style>
     <script type="text/javascript">
 
@@ -73,20 +81,35 @@
                     console.log('Name is not acquired')
                     return;
                 }
-                var mininteger = $(parent).find('[name=\'mininteger\']').val();
-                var maxinteger = $(parent).find('[name=\'maxinteger\']').val();
+                var selectedtype = $(parent).find('.selectiontype.active').attr('id');
 
-                if (mininteger >= maxinteger) {
-                    console.log('Min-Integer can not be smaller than max-integer')
-                    return;
-                }
+                if (selectedtype == 'integer') {
 
-                var tmp = [];
-                for (var i = mininteger; i < maxinteger; i++) {
-                    tmp.push(i);
+                    var mininteger = $(parent).find('[name=\'mininteger\']').val();
+                    var maxinteger = $(parent).find('[name=\'maxinteger\']').val();
+                    var stepinteger = $(parent).find('[name=\'stepinteger\']').val();
+                    mininteger = parseInt(mininteger);
+                    maxinteger = parseInt(maxinteger);
+                    stepinteger = parseInt(stepinteger);
+                    console.log(stepinteger)
+                    if (stepinteger == 0) {
+                        stepinteger = 1;
+                    }
+
+                    if (mininteger >= maxinteger) {
+                        console.log('Min-Integer can not be smaller than max-integer')
+                        return;
+                    }
+
+                    var tmp = [];
+                    for (var i = mininteger; i <= maxinteger; i+= 1) {
+                        tmp.push(i);
+                    }
+                    json[new_variablename] = tmp;
+                    window.editor.set(json);
+                } else {
+                    console.log('selected type is unknown: ' + selectedtype)
                 }
-                json[new_variablename] = tmp;
-                window.editor.set(json);
             });
 
 
@@ -238,7 +261,8 @@
                     $('[name=\'scriptvariables\']').val(JSON.stringify(all_combinations));
                     alert('Generated: ' + all_combinations.length+ ' combinations')
                 }
-            })
+            });
+
         });
     </script>
 </head>
@@ -532,53 +556,53 @@
                     </div>
                     <form method="POST" tal:attributes="action request.route_url('send_job', action='send')">
 
-                            <div class="form-group">
-                                <label for="environment">Select environment:
-                                    <select class="form-control" id="environment" name="environmentvariables">
-                                        <option>New one</option>
-                                    </select>
-                                </label>
-                            </div>
+                        <div class="form-group">
+                            <label for="environment">Cluster:
+                                <select class="form-control" id="environment" name="environmentvariables">
+                                    <option>Not yet implemented</option>
+                                </select>
+                            </label>
+                        </div>
 
-                            <div class="form-group">
-                                <label for="scriptname">
-                                    Script:
-                                    <select id="scriptname" name="scriptname" class="form-control scriptselection" style="width:200px;"></select>
-                                </label>
-                            </div>
+                        <div class="form-group">
+                            <label for="scriptname">
+                                Script:
+                                <select id="scriptname" name="scriptname" class="form-control scriptselection" style="width:200px;"></select>
+                            </label>
+                        </div>
 
-                            <div class="form-group">
-                                <label for="scriptvariables">
-                                    Scriptvariable:
-                                     <input type="text" name="scriptvariables" id="scriptvariables" value="VP01" class="input-medium"/>
-                                </label>
-                            </div>
+                        <div class="form-group">
+                            <label for="scriptvariables">
+                                Scriptvariable:
+                                <input type="text" name="scriptvariables" id="scriptvariables" value="VP01" class="input-medium"/>
+                            </label>
+                        </div>
 
-                            <div class="form-group">
-                                <label for="nodes" class="col-sm-6">
-                                    Nodes:</label>
-                                     <input type="number" min="1" class="col-sm-6" max="64" pattern="[0-9]{1,2}" id="nodes" title="Nodes" name="nodes" value="1"/>
+                        <div class="form-group">
+                            <label for="nodes" class="col-sm-6">
+                                Nodes:</label>
+                            <input type="number" min="1" class="col-sm-6" max="64" pattern="[0-9]{1,2}" id="nodes" title="Nodes" name="nodes" value="1"/>
 
-                            </div>
+                        </div>
 
-                            <div class="form-group">
-                                <label for="ppn" class="col-sm-6">PPN:</label>
-                                <input type="number" min="1" max="64" class="col-sm-6" pattern="[0-9]{1,2}" id="ppn" title="Procs" name="ppn" value="4"/>
-                            </div>
+                        <div class="form-group">
+                            <label for="ppn" class="col-sm-6">PPN:</label>
+                            <input type="number" min="1" max="64" class="col-sm-6" pattern="[0-9]{1,2}" id="ppn" title="Procs" name="ppn" value="4"/>
+                        </div>
 
-                            <div class="form-group">
-                                <label for="pmem" class="col-sm-6">
-                                    Memory:</label>
-                                <input type="number" class="col-sm-6" min="1" max="64" pattern="[0-9]{1,2}" title="Memory" id="pmem" name="pmem" value="16"/>
+                        <div class="form-group">
+                            <label for="pmem" class="col-sm-6">
+                                Memory:</label>
+                            <input type="number" class="col-sm-6" min="1" max="64" pattern="[0-9]{1,2}" title="Memory" id="pmem" name="pmem" value="16"/>
 
-                            </div>
+                        </div>
 
-                            <div class="form-group">
-                                <label for="walltime" class="col-sm-6">
-                                    Walltime:</label>
-                                <input type="text" class="col-sm-6" pattern="([0-9]{1,2}:[0-9]{2}:[0-9]{2}|[0-6]{1,2}h|[0-9]{1,2}min)" required placeholder="HH:mm:ss" id="walltime" title="Walltime" name="walltime"/>
+                        <div class="form-group">
+                            <label for="walltime" class="col-sm-6">
+                                Walltime:</label>
+                            <input type="text" class="col-sm-6" pattern="([0-9]{1,2}:[0-9]{2}:[0-9]{2}|[0-6]{1,2}h|[0-9]{1,2}min)" required placeholder="HH:mm:ss" id="walltime" title="Walltime" name="walltime"/>
 
-                            </div>
+                        </div>
 
 
                         <div class="row">
@@ -605,18 +629,51 @@
 
                     <div id="jsoneditor" style="height: 300px;"></div>
 
-                    <div class="row">
-                        <label class="col-sm-6" for="new_variablename">Variablename:</label>
-                        <input type="text" id="new_variablename" name="new_variablename" class="input-medium"/>
-                    </div>
 
                     <div class="row">
-                        <label for="integermin" class="col-sm-6">
-                            Integers:
-                        </label>
-                        <div class="col-sm-6">
-                            <input type="number" id="integermin" title="Min" name="mininteger" value="0" class="input-medium"/>
-                            <input type="number" id="integermax" title="Min" name="maxinteger" value="0" class="input-medium"/>
+                        <div class="col-sm-12">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <div class="panel-title">New Variable</div>
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <label class="col-sm-6" for="new_variablename">Variablename:</label>
+                                            <input type="text" id="new_variablename" name="new_variablename" class="input-medium"/>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <ul class="nav nav-pills newelement_typeselection">
+                                            <li role="presentation" class="active"><a href="#" name="integer">Integers</a></li>
+                                            <li role="presentation"><a href="#" name="formattedstring">Strings</a></li>
+                                            <li role="presentation"><a href="#" name="clusterfile">File on cluster</a></li>
+                                        </ul>
+                                        <div class="selectiontype active" id="integer">
+                                            <div class="input-group">
+                                                <span class="input-group-addon" id="min_integer_new">Min</span>
+                                                <input type="number" id="integermin" title="Min" name="mininteger" value="0" aria-describedby="min_integer_new" class="form-control"/>
+                                            </div>
+
+                                            <div class="input-group">
+                                                <span class="input-group-addon" id="max_integer_new">Max</span>
+                                                <input type="number" id="integermax" title="Max" name="maxinteger" value="9" aria-describedby="max_integer_new" class="form-control"/>
+                                            </div>
+                                            <div class="input-group">
+                                                <span class="input-group-addon" id="step_integer_new">Step</span>
+                                                <input type="number" id="integerstep" title="Step" name="stepinteger" value="1" aria-describedby="step_integer_new" class="form-control"/>
+                                            </div>
+
+                                        </div>
+                                        <div class="selectiontype" id="formattedstring">
+                                            Not yet implemented-formatted string
+                                        </div>
+                                        <div class="selectiontype" id="clusterfile">
+                                            Not yet implemented - clusterfile
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="row">

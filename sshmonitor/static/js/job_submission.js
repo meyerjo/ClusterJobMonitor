@@ -65,3 +65,15 @@ function allCases(elements, fieldnames) {
     });
     return results;
 }
+
+$(document).ready(function() {
+    $('.row .newelement_typeselection a').on('click', function () {
+        event.preventDefault();
+        var targetname = $(this).attr('name');
+        $(this).closest('ul').find('li.active').removeClass('active');
+        $(this).closest('li').addClass('active');
+        $('div.selectiontype').removeClass('active');
+        $('#' + targetname).addClass('active');
+    });
+});
+
