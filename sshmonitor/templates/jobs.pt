@@ -102,7 +102,7 @@
                     }
 
                     var tmp = [];
-                    for (var i = mininteger; i <= maxinteger; i+= 1) {
+                    for (var i = mininteger; i <= maxinteger; i+= stepinteger) {
                         tmp.push(i);
                     }
                     json[new_variablename] = tmp;
