@@ -150,15 +150,18 @@
                             alert('not yet implemented');
                             var selected_ids = $('#myModal .modal-body input[name=\'command\']:checked').map(function() { return parseInt($(this).val())}).get();
 
-                            var data = $('.test_commands').closest('form').serializeArray()
-                            data.push(new Object({'name': 'selectedcommands', 'value': selected_ids}));
+                            var data = $('.test_commands').closest('form').serializeArray();
+                            data.push(new Object({'name': 'selectedcommands', 'value': JSON.stringify(selected_ids)}));
+                            data.push(new Object({'name': 'requestresponse', 'value': 'json'}));
                             $.ajax({
                                 url: '${request.route_url('send_job', action='send')}',
                                 method: 'POST',
                                 data: data
                             }).done(function (response) {
-
                                 console.log(response);
+                            }).error(function (response) {
+                                console.log(response);
+                                alert(response);
                             });
                         });
 
@@ -677,7 +680,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-sm-6">
+                        <div class="col-sm-12">
                             <div class="form-group">
                                 <button class="btn btn-primary" name="addvariabletoenvironment">Add</button>
                             </div>
@@ -685,16 +688,31 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-sm-6">
+                        <div class="col-sm-12">
                             <div class="form-group">
-                                <button class="btn btn-primary" name="sendvarstojob">Send to current job</button>
+                                <div class="input-group">
+                                    <span class="input-group-addon">Combination generation:</span>
+                                    <select class="form-control">
+                                        <option value="all-combinations">All combinations</option>
+                                        <option value="1-1-combination">1-1 combinations</option>
+                                    </select>
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-primary" name="sendvarstojob">Send to job</button>
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-sm-6">
+                        <div class="col-sm-12">
                             <div class="form-group">
-                                <button class="btn btn-success" name="savevarenvironemnt">Save environment</button>
+                                <div class="input-group">
+                                    <span class="input-group-addon" id="environment_name">Environment</span>
+                                    <input type="text" class="form-control" placeholder="Name" aria-describedby="environment_name" name="environment_name">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-success" name="savevarenvironemnt">Save environment</button>
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -702,8 +720,6 @@
             </div>
         </div>
     </div>
-
-
     <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
