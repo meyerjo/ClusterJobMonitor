@@ -5,6 +5,7 @@ from pyramid.request import Request
 from pyramid.view import view_config
 
 from jobmanager.job_database_wrapper import JobDatabaseWrapper
+from jobmanager.sshbasedjobmanager import SSHBasedJobManager
 from ssh.run_clusterjob import JobSubmitStatement
 
 
@@ -75,8 +76,6 @@ class JobSubmission():
     @view_config(route_name='send_job', request_method='POST', match_param='action=send', request_param='requestresponse=json', renderer='json')
     def send_job_json(self):
         log = logging.getLogger(__name__)
-        log.info(self._request.matchdict)
-        log.info(self._request.params)
         cmds = None
         # adopt the request parameter
         try:
@@ -111,10 +110,10 @@ class JobSubmission():
         # TODO: send the commands
         for cmd in cmds:
             try:
-                ssh = None
+                ssh_holder = self._request.registry.settings['ssh_holder']
+                ssh_holder.send_command(cmd)
             except BaseException as e:
                 log.error(str(e))
-
         # return the result
         return dict(error=None, commands=cmds)
 

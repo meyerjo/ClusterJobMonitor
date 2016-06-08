@@ -123,8 +123,8 @@ class JobSubmitStatement():
             assert(isinstance(variable, dict))
             tuples = []
             for (key, val) in variable.items():
-                tuples.append('{0}={1}'.format(str(key), str(val)))
-            return '-v {0}'.format(','.join(tuples))
+                tuples.append('-v {0}={1}'.format(str(key), str(val)))
+            return ' '.join(tuples)
         log = logging.getLogger(__name__)
         if isinstance(variable, str):
             return parse_string(variable)

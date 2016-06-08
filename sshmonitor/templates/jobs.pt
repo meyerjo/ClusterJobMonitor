@@ -120,8 +120,10 @@
 
                 $(data).each(function(i, item) {
                     if (item['name'] == 'walltime') {
-                        item['value'] = '01:00:00';
-                        $(parentForm).find('input[name=\'walltime\']').val('01:00:00');
+                        if (item['value'] == '') {
+                            item['value'] = '01:00:00';
+                            $(parentForm).find('input[name=\'walltime\']').val('01:00:00');
+                        }
                     }
                 });
 
@@ -758,7 +760,10 @@
 <script>
     // create the editor
     var container = document.getElementById("jsoneditor");
-    var options = {};
+    var options = {
+        mode: 'tree',
+        modes: ['tree', 'code', 'text', 'view'], // allowed modes
+    };
     window.editor = new JSONEditor(container, options);
 
     // set json
