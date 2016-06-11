@@ -47,6 +47,7 @@ def main(global_config, **settings):
     config.add_route('joboutput', '/joboutput/{jobid}')
 
     config.add_route('send_job', '/sendjob/{action}')
+    config.add_route('variable_environment', '/variable_environment/{action}')
 
     config.add_route('jobarchive', '/archive')
     config.add_route('jobarchive_config', '/archive/config')

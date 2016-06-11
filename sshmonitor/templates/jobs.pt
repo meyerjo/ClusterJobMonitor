@@ -36,6 +36,8 @@
 
     <script src="${request.static_url('sshmonitor:static/dist/jsoneditor.min.js')}"></script>
 
+    <script src="${request.static_url('sshmonitor:static/js/sprintf.js')}"></script>
+
 
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -72,6 +74,30 @@
                 });
             });
 
+            $.ajax({
+                url: '${request.route_url('variable_environment', action='load')}',
+                method: "POST"
+            }).done(function(data) {
+                if (data['error'] !== undefined) {
+                    console.log(data['error']);
+                    return
+                }
+                $('#environment').find('option').remove();
+                $(data).each(function(i, element) {
+                    console.log('append '+ element);
+                    $('#environment').append($('<option/>', {
+                        text: element['job_name'],
+                        value: element['variable_set']
+                    }));
+                });
+            });
+
+            $('#environment').on('change', function() {
+                var obj = $.parseJSON($(this).val())
+                window.editor.set(obj);
+            });
+
+
             $('[name=\'addvariabletoenvironment\']').on('click', function() {
                 var json = window.editor.get();
                 var parent = $(this).closest('.panel-body');
@@ -82,9 +108,9 @@
                     return;
                 }
                 var selectedtype = $(parent).find('.selectiontype.active').attr('id');
+                console.log(selectedtype)
 
                 if (selectedtype == 'integer') {
-
                     var mininteger = $(parent).find('[name=\'mininteger\']').val();
                     var maxinteger = $(parent).find('[name=\'maxinteger\']').val();
                     var stepinteger = $(parent).find('[name=\'stepinteger\']').val();
@@ -107,6 +133,14 @@
                     }
                     json[new_variablename] = tmp;
                     window.editor.set(json);
+                } else if (selectedtype == 'formattedstring') {
+                    var pattern = $('#input_string_pattern').val();
+                    var d = [];
+                    for (var i=1; i <= 15; i++) {
+                        d.push(sprintf(pattern, i));
+                    }
+                    console.log(d);
+
                 } else {
                     console.log('selected type is unknown: ' + selectedtype)
                 }
@@ -266,6 +300,28 @@
                     $('[name=\'scriptvariables\']').val(JSON.stringify(all_combinations));
                     alert('Generated: ' + all_combinations.length+ ' combinations')
                 }
+            });
+
+            $('[name=\'savevarenvironemnt\']').on('click', function() {
+                var input_val = $(this).parent().closest('.input-group').find('input[name=environment_name]').val();
+
+                console.log('Should save environment with name: ' + input_val)
+                var json = window.editor.get();
+                console.log('With json: ' + JSON.stringify(json));
+
+                var json_script = $('#scriptname option:selected').val();
+                var obj = $.parseJSON(json_script);
+
+
+                var data = {'name': input_val, 'data': JSON.stringify(json),
+                    'scriptpath': obj['scriptpath'], 'scriptname': obj['scriptname']};
+
+                $.ajax({
+                    url: '${request.route_url('variable_environment', action='save')}',
+                    method: "POST",
+                    data: data}).done(function(data) {
+                   console.log(data);
+                });
             });
 
         });
@@ -562,8 +618,8 @@
                     <form method="POST" tal:attributes="action request.route_url('send_job', action='send')">
 
                         <div class="form-group">
-                            <label for="environment">Cluster:
-                                <select class="form-control" id="environment" name="environmentvariables">
+                            <label for="serverenvironment">Cluster:
+                                <select class="form-control" id="serverenvironment" name="environmentserver">
                                     <option>Not yet implemented</option>
                                 </select>
                             </label>
@@ -671,7 +727,10 @@
 
                                         </div>
                                         <div class="selectiontype" id="formattedstring">
-                                            Not yet implemented-formatted string
+                                            <div class="input-group">
+                                                <span class="input-group-addon" id="string_pattern">String</span>
+                                                <input type="text" id="input_string_pattern" title="Stringpattern" name="input_string_pattern" value="" aria-describedby="string_pattern" class="form-control"/>
+                                            </div>
                                         </div>
                                         <div class="selectiontype" id="clusterfile">
                                             Not yet implemented - clusterfile
@@ -762,7 +821,7 @@
     var container = document.getElementById("jsoneditor");
     var options = {
         mode: 'tree',
-        modes: ['tree', 'code', 'text', 'view'], // allowed modes
+        modes: ['tree', 'code', 'text', 'view'] // allowed modes
     };
     window.editor = new JSONEditor(container, options);
 

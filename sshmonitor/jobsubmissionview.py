@@ -1,11 +1,15 @@
 import logging
 
+import datetime
 import jsonpickle
+import transaction
 from pyramid.request import Request
 from pyramid.view import view_config
 
 from jobmanager.job_database_wrapper import JobDatabaseWrapper
 from jobmanager.sshbasedjobmanager import SSHBasedJobManager
+from models import DBSession
+from models.ConfigurationModel import JobConfiguration
 from ssh.run_clusterjob import JobSubmitStatement
 
 
@@ -140,3 +144,38 @@ class JobSubmission():
     @view_config(route_name='send_job', renderer='json', request_method='POST')
     def send_job_dummy(self):
         return dict(error='Unknown request {0}'.format(str(self._request.matchdict)))
+
+    @view_config(route_name='variable_environment', renderer='json', request_method='POST', match_param='action=save')
+    def save_variable_environment(self):
+        log = logging.getLogger(__name__)
+        try:
+            conf_name = self._request.params['name']
+            conf_variable = self._request.params['data']
+            job_name = self._request.params['scriptname']
+            job_path = self._request.params['scriptpath']
+            user_id = None
+            with transaction.manager:
+                # TODO: if the conf_name is already
+                query = DBSession.query(JobConfiguration).filter(JobConfiguration.configuration_name == conf_name).first()
+                if query is None:
+                    DBSession.add(JobConfiguration(conf_name, job_name, job_path, conf_variable, user_id))
+                else:
+                    query.conf_variable = conf_variable
+                DBSession.commit()
+                return dict(error=None)
+        except BaseException as e:
+            log.error(str(e))
+            raise e
+
+    @view_config(route_name='variable_environment', renderer='json', request_method='POST', match_param='action=load')
+    def load_variable_environment(self):
+        log = logging.getLogger(__name__)
+        try:
+            with transaction.manager:
+                query_result = DBSession.query(JobConfiguration.configuration_name, JobConfiguration.variable_set).all()
+                query_result = [dict(zip(['job_name', 'variable_set'], q)) for q in query_result]
+            query_result = [dict(job_name='New one', variable_set='{}'),] + query_result
+        except BaseException as e:
+            log.error(str(e))
+            query_result = [dict(job_name='New one', variable_set='{}', create_time=str(datetime.datetime.now()))]
+        return query_result
