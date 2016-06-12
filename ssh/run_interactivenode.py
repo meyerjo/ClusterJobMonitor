@@ -39,19 +39,33 @@ def check_job_state_is_running(xml_string, input_jobid):
         return False, str(e)
 
 
-def write_interactive_job_script(ssh_connection, scriptname):
+def write_interactive_job_script(ssh_connection, scriptname, commandname=None, vncversion=None):
+    import re
     log = logging.getLogger(__name__)
+    if commandname is None:
+        commandname = 'run_vncserver'
+    if not re.search('.*run_vncserver.*', commandname):
+        log.info('Specified commandname, doesn\'t match min expectation going to stop')
+        commandname = 'run_vncserver'
+    if vncversion is None:
+        vncversion = '1.1.0'
+    if not re.search('^1.[1,3].0$', vncversion):
+        vncversion = '1.1.0'
+
+
     shell_script = ('#!/bin/bash\n'
-                    'module load vis/tigervnc/1.1.0\n'
-                    'run_vncserver > $(echo ~/vnc_param_${{MOAB_JOBID}}.out)\n'
+                    'module load vis/tigervnc/{1}\n'
+                    '{0} > $(echo ~/vnc_param_${{MOAB_JOBID}}.out)\n'
                     'while :\n'
                     'do\n'
                     'echo "Run loop forever"\n'
                     'sleep 2\n'
-                    'done\n')
+                    'done\n').format(commandname, vncversion)
+    # shell_script = re.sub('{', '{{', shell_script)
+    # shell_script = re.sub('}', '}}', shell_script)
 
     cmd = 'echo \'{0}\' > {1}; cat {1}'.format(shell_script, scriptname)
-    stdin, stdout, stderr = ssh_connection.exec_command(cmd.format(shell_script))
+    stdin, stdout, stderr = ssh_connection.exec_command(cmd)
     stdout = get_output(stdout)
 
     if stdout == '':
@@ -79,7 +93,7 @@ def wait_for_job_start(ssh_connection, jobid, wait_seconds=10):
     while not job_active:
         log.info('Check if job {0} started'.format(jobid))
         try:
-            stdin, stdout, stderr = ssh_connection.exec_command('checkjob --xml {0}'.format(jobid))
+            stdin, stdout, stderr = ssh_connection.exec_command('checkjob -v -v --xml {0}'.format(jobid))
             stdout = str(get_output(stdout))
             if stdout != '':
                 stdout = stdout.strip()
@@ -91,7 +105,33 @@ def wait_for_job_start(ssh_connection, jobid, wait_seconds=10):
         sleep(wait_seconds)
 
 
-def handle_failed_grep(ssh_connection, jobid):
+def cleanup_old_session(ssh_connection, failed_parameter_output):
+    import re
+    log = logging.getLogger(__name__)
+    m = re.search('vncserver.+', failed_parameter_output)
+    if not m:
+        log.error('Failed to cleanup failed ssh session. Shouldn\'t happen')
+        log.error('Failed parameter output content:\n{0}'.format(failed_parameter_output))
+        return
+    cmd = m.group(0)
+    stdin, stdout, stderr = ssh_connection.exec_command(cmd)
+    stdout = get_output(stdout)
+    m = re.search('kill.+process\smanually', stdout)
+    if not m:
+        log.info('VNCServer should be killed, try to run script again')
+        log.info('Contact me, if this doesn\'t match expectation: {0}'.format(stdout))
+        return
+
+    m = re.search(':[0-9]+', cmd)
+    if not m:
+        log.error('Didn\'t succeed in killing command with cmd "{0}"'.format(cmd))
+    cmd = 'rm ~/.vnc/*{0}*.pid; rm ~/.vnc/*{0}*.log'.format(m.group(0))
+    log.warning('Running the following command: {0}'.format(cmd))
+    stdin, stdout, stderr = ssh_connection.exec_command(cmd)
+    log.info('You can try to run the script again. Everything should be cleaned up')
+
+
+def handle_failed_grep(ssh_connection, jobid, cleanup=False):
     """ Handles the failed grep. Outputs  the content of the vnc_param_%d.out(jobid) file and cancels the failed job request
 
     :param ssh_connection: paramiko ssh connection
@@ -102,9 +142,19 @@ def handle_failed_grep(ssh_connection, jobid):
     log.error('Grep of vnc_param failed')
     stdin, stdout, stderr = ssh_connection.exec_command('cat ~/vnc_param_{0}.out'.format(jobid))
     stdout = get_output(stdout)
-    log.error('Content of ~/vnc_param_{0}.out\n{1}'.format(jobid, stdout))
-    log.error('Usually this is the case, when you already have a job with an ssh connection. If you cannot kill it '
-              'with the given command, you can delete the files *.pid, *.log in ~/.vnc/')
+    import re
+    m = re.search('vncserver.+', stdout)
+    if m:
+        cmd = m.group(0)
+        log.warning('Use following command to delete the current ssh session: \'{0}\''.format(m.group(0)))
+        log.error('Usually this is the case, when you already have a job with an ssh connection. If you cannot kill it '
+                  'with the given command, you can delete the files *.pid, *.log in ~/.vnc/')
+        if cleanup:
+            cleanup_old_session(ssh_connection, stdout)
+    else:
+        log.error('Content of ~/vnc_param_{0}.out\n{1}'.format(jobid, stdout))
+        log.error('Usually this is the case, when you already have a job with an ssh connection. If you cannot kill it '
+                  'with the given command, you can delete the files *.pid, *.log in ~/.vnc/')
     log.warning('Canceling the job request {0}'.format(jobid))
     stdin, stdout, stderr = ssh_connection.exec_command('canceljob {0}'.format(jobid))
 
@@ -118,11 +168,14 @@ def get_connection_settings(stdout):
     lines = stdout.split('\n')
     ssh_vnc = ''
     vncviewer = ''
-    for line in lines:
-        if line.startswith('ssh'):
-            ssh_vnc = line
-        elif line.startswith('vncviewer'):
-            vncviewer = line
+    import re
+    m =  re.search('ssh -fCNL.*', stdout)
+    if m:
+        ssh_vnc = m.group(0)
+    m = re.search('vncviewer localhost:[0-9]+', stdout)
+    if m:
+        vncviewer = m.group(0)
+
     return ssh_vnc, vncviewer
 
 
@@ -144,7 +197,7 @@ def check_if_job_already_running(ssh_connection, jobname):
 
     :returns array of jobs which match the specified JoName
     """
-    stdin, stdout, stderr = ssh_connection.exec_command('showq --xml')
+    stdin, stdout, stderr = ssh_connection.exec_command('showq  --xml')
     stdout = get_output(stdout)
     xml = ET.fromstring(stdout.strip())
     jobs = []
@@ -158,6 +211,29 @@ def check_if_job_already_running(ssh_connection, jobname):
                 jobs.append(job.attrib)
     return jobs
 
+def establish_ssh_connection(ssh_vnc, config):
+    log = logging.getLogger(__name__)
+    log.info('Trying to establish SSH Tunnel')
+    command = ssh_vnc
+    if sys.platform == 'win32' or sys.platform == 'cygwin':
+        # cmd_wrapper = '"C:\\Program Files\\Git\\bin\\sh.exe" -c \'{0}\''
+        cmd = ["C:\\Program Files\\Git\\bin\\sh.exe", '-c', '{0}'.format(command)]
+    else:
+        cmd = command.split(' ')
+
+    if 'password' not in config:
+        log.error('Config not in Password')
+        return
+
+    pw_byteencoded = config['password'].encode('utf-8')
+    try:
+        p = Popen(cmd, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
+        stdout_cmd = p.communicate(input=pw_byteencoded)[0]
+    except BaseException as e:
+        log.error('Error using Popen communication to SSH. Just send it as os.system command: {0}'.format(str(e)))
+        os.system(' '.join(cmd))
+    log.info('SSH Tunnel should be established: Open your VNC tool and connect to: "{0}"'.format(
+        vncviewer[9:].strip()))
 
 if __name__ == '__main__':
     logging.basicConfig(
@@ -203,12 +279,13 @@ if __name__ == '__main__':
         password = getpass.getpass('Password: ')
         config['password'] = password
 
+    log.info('Trying to establish connection to: {0} with username {1}'.format(config['hostname'], config['username']))
     # setting up ssh connection
     ssh = None
     try:
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(config['hostname'], username=config['username'], password=config['password'], allow_agent=False, look_for_keys=False)
+        ssh.connect(config['hostname'], username=config['username'], password=config['password'], allow_agent=False, look_for_keys=False, timeout=60)
     except BaseException as e:
         log.error('Error during connection establishment: {0}'.format(str(e)))
         exit(-1)
@@ -239,7 +316,11 @@ if __name__ == '__main__':
 
     # Send the shell script to the cluster
     log.info('Writing the interactive job script to the server ...')
-    write_interactive_job_script(ssh, scriptname_cluster)
+    if 'custom_vnccommand' not in config:
+        config['custom_vnccommand'] = 'run_vncserver'
+    if 'custom_vncversion' not in config:
+        config['custom_vncversion'] = '1.1.0'
+    write_interactive_job_script(ssh, scriptname_cluster, config['custom_vnccommand'], config['custom_vncversion'])
 
     # Queue the interactive job
     log.info('Submitting the interactive job ...')
@@ -251,31 +332,25 @@ if __name__ == '__main__':
 
     # our job is active now
     log.info('Interactive job is active')
-    stdin, stdout, stderr = ssh.exec_command("grep 'ssh\|vncviewer' ~/vnc_param_{0}.out".format(jobid))
-    stdout = get_output(stdout)
-    if stdout == '':
-        handle_failed_grep(ssh, jobid)
+    read_file_max = 3
+    stdout = None
+    for i in range(0, read_file_max):
+        stdin, stdout, stderr = ssh.exec_command("cat ~/vnc_param_{0}.out".format(jobid))
+        stdout = get_output(stdout)
+        if (stdout is not None) and (stdout != ''):
+            break
+        else:
+            log.info('VNC Parameter file seems to be empty, waiting for 3 seconds then try to read again')
+            sleep(3)
+
+    ssh_vnc, vncviewer = get_connection_settings(stdout)
+    if ssh_vnc == '' or vncviewer == '':
+        handle_failed_grep(ssh, jobid, cleanup=True)
     else:
-        ssh_vnc, vncviewer = get_connection_settings(stdout)
         log.info('Establish SSH-Connection with the following command: "{0}"'.format(ssh_vnc))
         log.info('VNC Connection to "{0}"'.format(vncviewer[9:].strip()))
         # Write it to the console
         if args.establish_sshtunnel:
-            log.info('Trying to establish SSH Tunnel')
-            command = ssh_vnc
-            if sys.platform == 'win32' or sys.platform == 'cygwin':
-                # cmd_wrapper = '"C:\\Program Files\\Git\\bin\\sh.exe" -c \'{0}\''
-                cmd = ["C:\\Program Files\\Git\\bin\\sh.exe",  '-c', '{0}'.format(command)]
-            else:
-                cmd = command.split(' ')
+            establish_ssh_connection(ssh_vnc, config)
 
-            pw_byteencoded = config['password'].encode('utf-8')
-            try:
-                p = Popen(cmd, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
-                stdout_cmd = p.communicate(input=pw_byteencoded)[0]
-            except BaseException as e:
-                log.error('Error using Popen communication to SSH. Just send it as os.system command: {0}'.format(str(e)))
-                os.system(' '.join(cmd))
-            log.info('SSH Tunnel should be established: Open your VNC tool and connect to: "{0}"'.format(
-                vncviewer[9:].strip()))
     ssh.close()

@@ -183,7 +183,6 @@
                         });
 
                         $('#myModal .modal-footer button[name=\'sendcommands\']').unbind().on('click', function() {
-                            alert('not yet implemented');
                             var selected_ids = $('#myModal .modal-body input[name=\'command\']:checked').map(function() { return parseInt($(this).val())}).get();
 
                             var data = $('.test_commands').closest('form').serializeArray();
@@ -195,9 +194,10 @@
                                 data: data
                             }).done(function (response) {
                                 console.log(response);
+                                $('#myModal').modal('hide');
                             }).error(function (response) {
                                 console.log(response);
-                                alert(response);
+                                alert('Error during processing, please see log');
                             });
                         });
 
@@ -211,7 +211,6 @@
 
             $('form.form_canceljob').submit(function( event ) {
                 event.preventDefault();
-
                 // show the user a modal to confirm the selection
                 var data = $(this).serializeArray();
                 // get the selected checkboxes
@@ -319,9 +318,14 @@
                 $.ajax({
                     url: '${request.route_url('variable_environment', action='save')}',
                     method: "POST",
-                    data: data}).done(function(data) {
-                   console.log(data);
-                });
+                    data: data})
+                        .done(function(data) {
+                            console.log(data);
+                        })
+                        .error(function(data) {
+                            console.log(data);
+                            alert('Error during saving, see log')
+                        });
             });
 
         });

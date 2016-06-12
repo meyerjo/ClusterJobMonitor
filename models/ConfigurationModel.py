@@ -35,7 +35,8 @@ class JobConfiguration(Base):
     user_id = Column(Integer, nullable=True)
     create_time = Column(DateTime, default=datetime.datetime.utcnow(), nullable=True)
 
-    def __init__(self, job_name, job_path, variable_set, user_id=None):
+    def __init__(self, conf_name, job_name, job_path, variable_set, user_id=None):
+        self.configuration_name = conf_name
         self.job_name = job_name
         self.job_path = job_path
         self.variable_set = variable_set
